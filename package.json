@@ -6,20 +6,44 @@
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
 		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
-		"version": "node version-bump.mjs && git add manifest.json versions.json"
+		"version": "node version-bump.mjs && git add manifest.json versions.json",
+		"test": "jest --watch",
+		"proto:generate": "node node_modules/protobufjs-cli/bin/pbjs -t static-module -w commonjs -o src_generated/native_bridge.js src_native/proto/native_bridge.proto && node node_modules/protobufjs-cli/bin/pbts -o src_generated/native_bridge.d.ts src_generated/native_bridge.js"
 	},
 	"keywords": [],
 	"author": "",
 	"license": "MIT",
+	"dependencies": {
+		"@agracio/edge-cs": "^1.3.7",
+		"@popperjs/core": "^2.11.6",
+		"@types/jest": "^30.0.0",
+		"@types/lodash": "^4.17.10",
+		"@types/node": "^24.3.3",
+		"@types/underscore": "^1.11.15",
+		"@types/vcf": "^2.0.7",
+		"@typescript-eslint/eslint-plugin": "^8.43.0",
+		"@typescript-eslint/parser": "^8.43.0",
+		"builtin-modules": "^5.0.0",
+		"electron-edge-js": "^38.0.0",
+		"esbuild": "^0.25.4",
+		"esbuild-plugin-copy": "^2.1.1",
+		"fp-ts": "^2.16.9",
+		"jest": "^30.1.3",
+		"obsidian": "^1.8.7",
+		"oxide.ts": "^1.1.0",
+		"protobufjs": "^7.5.4",
+		"ts-jest": "^29.2.5",
+		"tslib": "^2.8.1",
+		"typed-vCard": "file:../typed-vcard",
+		"typescript": "^5.9.3",
+		"vcf": "^2.1.2",
+		"workerpool": "^10.0.1"
+	},
 	"devDependencies": {
-		"@popperjs/core": "^2.11.8",
-		"@types/node": "^16.18.108",
-		"@typescript-eslint/eslint-plugin": "5.29.0",
-		"@typescript-eslint/parser": "5.29.0",
-		"builtin-modules": "3.3.0",
-		"esbuild": "0.17.3",
-		"obsidian": "^1.7.2",
-		"tslib": "2.4.0",
-		"typescript": "4.7.4"
+		"edge-js": "^25.0.0",
+		"eslint": "^9.39.3",
+		"license-checker": "^25.0.1",
+		"prettier": "^3.8.1",
+		"protobufjs-cli": "^2.0.0"
 	}
 }

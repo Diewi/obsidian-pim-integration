@@ -1,0 +1,44 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "npm",
+			"script": "install",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		},
+		{
+			"type": "npm",
+			"script": "build",
+			"group": "build",
+			"problemMatcher": [],
+			"label": "npm: build",
+			"detail": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production"
+		},
+		{
+			"type": "npm",
+			"script": "watch",
+			"group": "build",
+			"problemMatcher": [],
+			"label": "npm: watch",
+			"detail": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs development --watch"
+		},
+		{
+			"type": "shell",
+			"label": "Build + deploy plugin files",
+			"dependsOn": "npm: build",
+			"command": "cmd",
+			"args": [
+
+			],
+			"windows": {
+				"command": "cmd"
+			},
+			"group": "build",
+			"problemMatcher": [],
+			"detail": "Copies plugin files to the target Obsidian plugin directory"
+		}
+	]
+}

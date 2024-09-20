@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
+    "baseUrl": "./",
     "inlineSourceMap": true,
     "inlineSources": true,
-    "module": "ESNext",
-    "target": "ES6",
+    "module": "commonjs",
+    "target": "es6",
     "allowJs": true,
     "noImplicitAny": true,
     "moduleResolution": "node",
@@ -16,9 +16,16 @@
       "ES5",
       "ES6",
       "ES7"
-    ]
+    ],
+    "esModuleInterop": true,
+    "jsx": "react",
+    "outDir": "./dist",
+    "rootDir": "./",
+    "strict": true,
+    "paths": {
+      "*": ["node_modules/*"]
+    }
   },
-  "include": [
-    "**/*.ts"
-  ]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "tests/*.ts", "tests/*.tsx", "tests/edge/edge-init.integration.test.ts"],
+  "exclude": ["node_modules"]
 }

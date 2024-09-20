@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+    <BuildOutputPath>../../dist_outlookcombridge/</BuildOutputPath>
+    <PublishDir>../../dist_outlookcombridge/</PublishDir>
+    <SelfContained>false</SelfContained>
+    <PublishReadyToRun>false</PublishReadyToRun>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <!-- Entry point for the CLI tool -->
+    <StartupObject>NativeBridge.OutlookComBridge.CliEntryPoint</StartupObject>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <CustomBuildBeforeTargets>ClCompile</CustomBuildBeforeTargets>
+    <OutputPath>../../build/outlookcombridge/Debug/</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <CustomBuildBeforeTargets>ClCompile</CustomBuildBeforeTargets>
+    <OutputPath>../../build/outlookcombridge/Release/</OutputPath>
+  </PropertyGroup>
+
+  <!-- Compile protobuf files before C# compilation -->
+  <Target Name="CompileProtobuf" BeforeTargets="BeforeBuild;CoreCompile">
+    <PropertyGroup>
+      <ProtocPath>$(ProjectDir)protobuf_bin\bin\protoc.exe</ProtocPath>
+      <ProtoPath>$(ProjectDir)..\proto</ProtoPath>
+      <ProtoOutPath>$(ProjectDir)proto</ProtoOutPath>
+    </PropertyGroup>
+
+    <!-- Create output directory if it doesn't exist -->
+    <MakeDir Directories="$(ProtoOutPath)" Condition="!Exists('$(ProtoOutPath)')" />
+
+    <!-- Run protoc to generate C# code from .proto files -->
+    <Exec Command="&quot;$(ProtocPath)&quot; --proto_path=&quot;$(ProtoPath)&quot; --csharp_out=&quot;$(ProtoOutPath)&quot; &quot;$(ProtoPath)\native_bridge.proto&quot;" 
+          WorkingDirectory="$(ProjectDir)" />
+  </Target>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.25.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="8.0.2" />
+    <PackageReference Include="Microsoft.Office.Interop.Outlook" Version="*" />
+    <PackageReference Include="MicrosoftOfficeCore" Version="15.0.0" NoWarn="NU1701" />
+    <PackageReference Include="Mono.Options" Version="*" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
+  </ItemGroup>
+  
+  <!-- Exclude test files from main project compilation -->
+  <ItemGroup>
+    <Compile Remove="OutlookComBridge.Tests\**\*.cs" />
+    <EmbeddedResource Remove="OutlookComBridge.Tests\**\*" />
+    <None Remove="OutlookComBridge.Tests\**\*" />
+  </ItemGroup>
+
+</Project>

@@ -1,16 +1,25 @@
 # vscode
-.vscode 
-
-# Intellij
-*.iml
-.idea
+/.vscode/*
+!/.vscode/*.template.json
 
 # npm
-node_modules
+/node_modules
 
-# Don't include the compiled main.js file in the repo.
-# They should be uploaded to GitHub releases instead.
-main.js
+# Build directories
+/build
+/dist
+/dist_outlookcombridge/**
+# Add outlookcombridge artifacts to repository --> Currently, we need the DLLs. Direct source
+# compilation via edge did not yet work (maybe due to interop libs).
+!/dist_outlookcombridge/Microsoft.Extensions.DependencyModel.dll
+!/dist_outlookcombridge/Mono.Options.dll
+!/dist_outlookcombridge/OutlookComBridge.dll
+!/dist_outlookcombridge/OutlookComBridge.deps.json
+!/dist_outlookcombridge/OutlookComBridge.runtimeconfig.json
+/src_generated/**
+
+# Test results
+/coverage/**
 
 # Exclude sourcemaps
 *.map

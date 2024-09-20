@@ -1,0 +1,18 @@
+{
+  "runtimeOptions": {
+    "tfm": "net8.0",
+    "framework": {
+      "name": "Microsoft.NETCore.App",
+      "version": "8.0.0"
+    },
+    "additionalProbingPaths": [
+      "{{BIN_PATH}}",
+      "C:\\Windows\\assembly\\GAC_MSIL",
+      "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\8.0.22"
+    ],
+    "configProperties": {
+      "System.Reflection.Metadata.MetadataUpdater.IsSupported": false,
+      "System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization": false
+    }
+  }
+}

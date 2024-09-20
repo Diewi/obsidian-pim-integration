@@ -1,0 +1,11 @@
+# IDE
+/.vscode/*
+!/.vscode/*.template.json
+
+# Build dirs
+/obj/**
+/OutlookComBridge.Tests/bin/**
+/OutlookComBridge.Tests/obj/**
+
+# Generated source files
+/protobuf_bin/**
