@@ -1,7 +1,7 @@
 {
-	"name": "obsidian-sample-plugin",
-	"version": "1.0.0",
-	"description": "This is a sample plugin for Obsidian (https://obsidian.md)",
+	"name": "obsidian-pim-integration",
+	"version": "0.1.0",
+	"description": "Integration for MS office or groupware (e.g. CardDav)",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
