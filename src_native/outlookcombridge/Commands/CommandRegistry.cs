@@ -14,6 +14,7 @@ namespace NativeBridge.OutlookComBridge.Commands
     {
       // Register all known commands
       RegisterCommand(new ExportContactsCommand());
+      RegisterCommand(new ExportCalendarCommand());
       RegisterCommand(new PingCommand());
       RegisterCommand(new TestEchoCommand());
       RegisterCommand(new ListCommandsCommand(this));

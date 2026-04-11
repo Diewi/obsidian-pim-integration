@@ -152,5 +152,64 @@ END:VCARD";
         MergedVcards = NormalizeVCardLineEndings(JohnDoeVCard)
       };
     }
+
+    // ========================================================================
+    // Calendar test data
+    // ========================================================================
+
+    /// <summary>
+    /// Sample iCalendar string with two events for testing calendar export.
+    /// Uses RFC 5545 format with CRLF line endings.
+    /// The date range is 2026-04-01 to 2026-04-30.
+    /// </summary>
+    public const string TestICalendar = "BEGIN:VCALENDAR\r\n" +
+      "VERSION:2.0\r\n" +
+      "PRODID:-//OutlookComBridge//Test//EN\r\n" +
+      "METHOD:PUBLISH\r\n" +
+      "BEGIN:VEVENT\r\n" +
+      "DTSTART:20260410T090000Z\r\n" +
+      "DTEND:20260410T100000Z\r\n" +
+      "SUMMARY:Team Standup\r\n" +
+      "DESCRIPTION:Daily standup meeting with the engineering team.\r\n" +
+      "LOCATION:Conference Room A\r\n" +
+      "UID:test-event-001@outlookcombridge\r\n" +
+      "END:VEVENT\r\n" +
+      "BEGIN:VEVENT\r\n" +
+      "DTSTART:20260415T140000Z\r\n" +
+      "DTEND:20260415T153000Z\r\n" +
+      "SUMMARY:Project Review\r\n" +
+      "DESCRIPTION:Quarterly project review with stakeholders.\r\n" +
+      "LOCATION:Board Room\r\n" +
+      "UID:test-event-002@outlookcombridge\r\n" +
+      "END:VEVENT\r\n" +
+      "BEGIN:VEVENT\r\n" +
+      "DTSTART:20260420T110000Z\r\n" +
+      "DTEND:20260420T120000Z\r\n" +
+      "SUMMARY:Lunch with Müller & Associés\r\n" +
+      "DESCRIPTION:Business lunch — discuss Ångström project timeline.\r\n" +
+      "LOCATION:Restaurant Königshof, München\r\n" +
+      "UID:test-event-003@outlookcombridge\r\n" +
+      "END:VEVENT\r\n" +
+      "END:VCALENDAR\r\n";
+
+    /// <summary>
+    /// Number of VEVENT components in TestICalendar.
+    /// </summary>
+    public const int TestICalendarEventCount = 3;
+
+    /// <summary>
+    /// Gets an ExportResult containing test calendar data.
+    /// </summary>
+    public static NativeBridge.ExportResult GetTestCalendarExportResult()
+    {
+      return new NativeBridge.ExportResult
+      {
+        Calendar = new NativeBridge.CalendarData
+        {
+          Ical = TestICalendar,
+          EventCount = TestICalendarEventCount
+        }
+      };
+    }
   }
 }

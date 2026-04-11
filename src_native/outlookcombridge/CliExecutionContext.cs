@@ -19,6 +19,12 @@ namespace NativeBridge.OutlookComBridge
     public bool UseJson { get; set; }
 
     /// <summary>
+    /// Structured request parameters parsed from stdin (protobuf or JSON).
+    /// Null when no stdin input was provided (backward compatible with plain CLI args).
+    /// </summary>
+    public CliRequest? Request { get; set; }
+
+    /// <summary>
     /// Creates a default execution context with no special flags enabled.
     /// </summary>
     public static CliExecutionContext Default => new();

@@ -64,6 +64,49 @@ namespace NativeBridge.OutlookComBridge
         return 0;
       }
 
+      // Read structured request from stdin if input is redirected
+      if (Console.IsInputRedirected)
+      {
+        try
+        {
+          if (useJson)
+          {
+            // JSON input mode
+            var jsonInput = await Console.In.ReadToEndAsync();
+            if (!string.IsNullOrWhiteSpace(jsonInput))
+            {
+              var parser = new Google.Protobuf.JsonParser(Google.Protobuf.JsonParser.Settings.Default);
+              context.Request = parser.Parse<NativeBridge.CliRequest>(jsonInput);
+            }
+          }
+          else
+          {
+            // Binary protobuf input mode
+            using var stdin = Console.OpenStandardInput();
+            using var ms = new MemoryStream();
+            await stdin.CopyToAsync(ms);
+            if (ms.Length > 0)
+            {
+              ms.Position = 0;
+              context.Request = NativeBridge.CliRequest.Parser.ParseFrom(ms);
+            }
+          }
+        }
+        catch (Exception ex)
+        {
+          var errorResponse = new NativeBridge.CliResponse
+          {
+            Success = false,
+            Command = filteredArgs.Length > 0 ? filteredArgs[0] : "unknown",
+            Timestamp = DateTimeOffset.UtcNow.Ticks,
+            ErrorMessage = $"Failed to parse stdin request: {ex.Message}",
+            ErrorStackTrace = ex.StackTrace ?? ""
+          };
+          OutputResponse(errorResponse, useJson);
+          return 1;
+        }
+      }
+
       // Extract command name and remaining args
       var commandName = filteredArgs[0];
       var commandArgs = filteredArgs.Skip(1).ToArray();
@@ -86,15 +129,22 @@ OutlookComBridge CLI - Flexible command dispatcher for Outlook integration
 Usage: OutlookComBridge.exe [global-options] <command> [command-args]
 
 Global Options:
-  --json          Output as JSON instead of binary protobuf (useful for debugging)
+  --json          Output as JSON instead of binary protobuf (useful for debugging).
+                  Also switches stdin parsing to JSON mode.
   --test-data     Return test data instead of real data (for integration testing)
   --help, -h      Show this help information
   --validate-deps Validate that all required DLLs can be loaded
 
+Stdin Input:
+  Commands can receive structured parameters via stdin as protobuf (default)
+  or JSON (with --json flag). The message format is CliRequest as defined in
+  native_bridge.proto.
+
 Available Commands:
-  export-contacts  Export all contacts from Outlook as structured vCard data
-  ping             Test command to verify CLI tool works correctly
-  list-commands    List all available CLI commands
+  export-contacts   Export all contacts from Outlook as structured vCard data
+  export-calendar   Export calendar events for a time range as iCalendar data
+  ping              Test command to verify CLI tool works correctly
+  list-commands     List all available CLI commands
 
 Examples:
   OutlookComBridge.exe export-contacts              # Binary protobuf output
@@ -103,6 +153,7 @@ Examples:
   OutlookComBridge.exe --test-data --json export-contacts  # Test data as JSON
   OutlookComBridge.exe ping --json                  # Quick connectivity test
   OutlookComBridge.exe --validate-deps              # Check DLL loading
+  echo <json> | OutlookComBridge.exe --json export-calendar  # Calendar export with params via stdin
 
 Output Format:
   By default, output is length-prefixed binary protobuf:

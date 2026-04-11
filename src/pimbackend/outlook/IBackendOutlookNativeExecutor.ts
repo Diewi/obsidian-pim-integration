@@ -19,4 +19,17 @@ export interface IBackendOutlookNativeExecutor extends INativeExecutor {
    * @returns Promise resolving to vCard string or error message.
    */
   exportContacts(): Promise<Result<string, string>>;
+
+  /**
+   * Export calendar events for a time range as iCalendar data.
+   * @param startDate Start of the export range (UTC).
+   * @param endDate End of the export range (UTC).
+   * @param includePrivate Whether to include private events.
+   * @returns Promise resolving to iCalendar string or error message.
+   */
+  exportCalendar(
+    startDate: Date,
+    endDate: Date,
+    includePrivate?: boolean
+  ): Promise<Result<string, string>>;
 }

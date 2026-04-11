@@ -49,11 +49,13 @@ export abstract class NativeExecutorCli implements INativeExecutor {
    *
    * @param command The command name to execute.
    * @param args Additional command arguments.
+   * @param request Optional structured request to send via stdin.
    * @returns Promise resolving to raw output buffer or error.
    */
   protected async executeCommand(
     command: string,
-    args: string[] = []
+    args: string[] = [],
+    request?: native_bridge.ICliRequest
   ): Promise<Result<Buffer, string>> {
     if (!fs.existsSync(this.exePath)) {
       return Err(`CLI tool not found at: ${this.exePath}`);
@@ -67,11 +69,27 @@ export abstract class NativeExecutorCli implements INativeExecutor {
       cliArgs.push('--test-data');
     }
 
+    const hasStdinInput = request != null;
+
     return new Promise((resolve) => {
       const child: ChildProcess = spawn(this.exePath, cliArgs, {
-        stdio: ['ignore', 'pipe', 'pipe'],
+        stdio: [hasStdinInput ? 'pipe' : 'ignore', 'pipe', 'pipe'],
         cwd: this.nativeBridgePath,
       });
+
+      // Send request via stdin if provided
+      if (hasStdinInput && child.stdin) {
+        if (this.useJson) {
+          const jsonStr = JSON.stringify(native_bridge.CliRequest.toObject(
+            native_bridge.CliRequest.create(request),
+            { defaults: true }
+          ));
+          child.stdin.end(jsonStr);
+        } else {
+          const encoded = native_bridge.CliRequest.encode(request).finish();
+          child.stdin.end(Buffer.from(encoded));
+        }
+      }
 
       const chunks: Buffer[] = [];
       let stderr = '';
@@ -119,13 +137,15 @@ export abstract class NativeExecutorCli implements INativeExecutor {
    *
    * @param command The command name to execute.
    * @param args Additional command arguments.
+   * @param request Optional structured request to send via stdin.
    * @returns Promise resolving to parsed CliResponse or error.
    */
   protected async executeCommandProtobuf(
     command: string,
-    args: string[] = []
+    args: string[] = [],
+    request?: native_bridge.ICliRequest
   ): Promise<Result<native_bridge.CliResponse, string>> {
-    const result = await this.executeCommand(command, args);
+    const result = await this.executeCommand(command, args, request);
     if (result.isErr()) {
       return Err(result.unwrapErr());
     }

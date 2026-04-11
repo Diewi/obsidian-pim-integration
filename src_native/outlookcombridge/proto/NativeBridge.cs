@@ -24,20 +24,33 @@ namespace NativeBridge {
     static NativeBridgeReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "ChNuYXRpdmVfYnJpZGdlLnByb3RvEg1uYXRpdmVfYnJpZGdlInIKDEV4cG9y",
-            "dFJlc3VsdBIOCgRlY2hvGAEgASgJSAASKgoGdmNhcmRzGAIgASgLMhgubmF0",
-            "aXZlX2JyaWRnZS5WQ2FyZERhdGFIABIXCg1tZXJnZWRfdmNhcmRzGAMgASgJ",
-            "SABCDQoLZXhwb3J0X2RhdGEiGwoJVkNhcmREYXRhEg4KBnZjYXJkcxgBIAMo",
-            "CSK/AQoLQ2xpUmVzcG9uc2USDwoHc3VjY2VzcxgBIAEoCBIVCg1lcnJvcl9t",
-            "ZXNzYWdlGAIgASgJEhkKEWVycm9yX3N0YWNrX3RyYWNlGAMgASgJEg8KB2Nv",
-            "bW1hbmQYBCABKAkSEQoJdGltZXN0YW1wGAUgASgDEjIKDWV4cG9ydF9yZXN1",
-            "bHQYCiABKAsyGy5uYXRpdmVfYnJpZGdlLkV4cG9ydFJlc3VsdBIVCg1zaW1w",
-            "bGVfcmVzdWx0GBQgASgJYgZwcm90bzM="));
+            "ChNuYXRpdmVfYnJpZGdlLnByb3RvEg1uYXRpdmVfYnJpZGdlIpQBCgpDbGlS",
+            "ZXF1ZXN0EjwKDmNvbnRhY3RfZXhwb3J0GAogASgLMiIubmF0aXZlX2JyaWRn",
+            "ZS5Db250YWN0RXhwb3J0UGFyYW1zSAASPgoPY2FsZW5kYXJfZXhwb3J0GAsg",
+            "ASgLMiMubmF0aXZlX2JyaWRnZS5DYWxlbmRhckV4cG9ydFBhcmFtc0gAQggK",
+            "BnBhcmFtcyIqChNDb250YWN0RXhwb3J0UGFyYW1zEhMKC2ZvbGRlcl9uYW1l",
+            "GAEgASgJIlUKFENhbGVuZGFyRXhwb3J0UGFyYW1zEhIKCnN0YXJ0X2RhdGUY",
+            "ASABKAMSEAoIZW5kX2RhdGUYAiABKAMSFwoPaW5jbHVkZV9wcml2YXRlGAMg",
+            "ASgIIqMBCgxFeHBvcnRSZXN1bHQSDgoEZWNobxgBIAEoCUgAEioKBnZjYXJk",
+            "cxgCIAEoCzIYLm5hdGl2ZV9icmlkZ2UuVkNhcmREYXRhSAASFwoNbWVyZ2Vk",
+            "X3ZjYXJkcxgDIAEoCUgAEi8KCGNhbGVuZGFyGAQgASgLMhsubmF0aXZlX2Jy",
+            "aWRnZS5DYWxlbmRhckRhdGFIAEINCgtleHBvcnRfZGF0YSIbCglWQ2FyZERh",
+            "dGESDgoGdmNhcmRzGAEgAygJIjEKDENhbGVuZGFyRGF0YRIMCgRpY2FsGAEg",
+            "ASgJEhMKC2V2ZW50X2NvdW50GAIgASgFIr8BCgtDbGlSZXNwb25zZRIPCgdz",
+            "dWNjZXNzGAEgASgIEhUKDWVycm9yX21lc3NhZ2UYAiABKAkSGQoRZXJyb3Jf",
+            "c3RhY2tfdHJhY2UYAyABKAkSDwoHY29tbWFuZBgEIAEoCRIRCgl0aW1lc3Rh",
+            "bXAYBSABKAMSMgoNZXhwb3J0X3Jlc3VsdBgKIAEoCzIbLm5hdGl2ZV9icmlk",
+            "Z2UuRXhwb3J0UmVzdWx0EhUKDXNpbXBsZV9yZXN1bHQYFCABKAliBnByb3Rv",
+            "Mw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::NativeBridge.ExportResult), global::NativeBridge.ExportResult.Parser, new[]{ "Echo", "Vcards", "MergedVcards" }, new[]{ "ExportData" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::NativeBridge.CliRequest), global::NativeBridge.CliRequest.Parser, new[]{ "ContactExport", "CalendarExport" }, new[]{ "Params" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::NativeBridge.ContactExportParams), global::NativeBridge.ContactExportParams.Parser, new[]{ "FolderName" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::NativeBridge.CalendarExportParams), global::NativeBridge.CalendarExportParams.Parser, new[]{ "StartDate", "EndDate", "IncludePrivate" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::NativeBridge.ExportResult), global::NativeBridge.ExportResult.Parser, new[]{ "Echo", "Vcards", "MergedVcards", "Calendar" }, new[]{ "ExportData" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::NativeBridge.VCardData), global::NativeBridge.VCardData.Parser, new[]{ "Vcards" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::NativeBridge.CalendarData), global::NativeBridge.CalendarData.Parser, new[]{ "Ical", "EventCount" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::NativeBridge.CliResponse), global::NativeBridge.CliResponse.Parser, new[]{ "Success", "ErrorMessage", "ErrorStackTrace", "Command", "Timestamp", "ExportResult", "SimpleResult" }, null, null, null, null)
           }));
     }
@@ -45,6 +58,790 @@ namespace NativeBridge {
 
   }
   #region Messages
+  /// <summary>
+  /// Unified request envelope sent via stdin.
+  /// The command name is still passed as a CLI argument for discoverability;
+  /// this message carries structured parameters for commands that need them.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class CliRequest : pb::IMessage<CliRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<CliRequest> _parser = new pb::MessageParser<CliRequest>(() => new CliRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<CliRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::NativeBridge.NativeBridgeReflection.Descriptor.MessageTypes[0]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public CliRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public CliRequest(CliRequest other) : this() {
+      switch (other.ParamsCase) {
+        case ParamsOneofCase.ContactExport:
+          ContactExport = other.ContactExport.Clone();
+          break;
+        case ParamsOneofCase.CalendarExport:
+          CalendarExport = other.CalendarExport.Clone();
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public CliRequest Clone() {
+      return new CliRequest(this);
+    }
+
+    /// <summary>Field number for the "contact_export" field.</summary>
+    public const int ContactExportFieldNumber = 10;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::NativeBridge.ContactExportParams ContactExport {
+      get { return paramsCase_ == ParamsOneofCase.ContactExport ? (global::NativeBridge.ContactExportParams) params_ : null; }
+      set {
+        params_ = value;
+        paramsCase_ = value == null ? ParamsOneofCase.None : ParamsOneofCase.ContactExport;
+      }
+    }
+
+    /// <summary>Field number for the "calendar_export" field.</summary>
+    public const int CalendarExportFieldNumber = 11;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::NativeBridge.CalendarExportParams CalendarExport {
+      get { return paramsCase_ == ParamsOneofCase.CalendarExport ? (global::NativeBridge.CalendarExportParams) params_ : null; }
+      set {
+        params_ = value;
+        paramsCase_ = value == null ? ParamsOneofCase.None : ParamsOneofCase.CalendarExport;
+      }
+    }
+
+    private object params_;
+    /// <summary>Enum of possible cases for the "params" oneof.</summary>
+    public enum ParamsOneofCase {
+      None = 0,
+      ContactExport = 10,
+      CalendarExport = 11,
+    }
+    private ParamsOneofCase paramsCase_ = ParamsOneofCase.None;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ParamsOneofCase ParamsCase {
+      get { return paramsCase_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearParams() {
+      paramsCase_ = ParamsOneofCase.None;
+      params_ = null;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as CliRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(CliRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (!object.Equals(ContactExport, other.ContactExport)) return false;
+      if (!object.Equals(CalendarExport, other.CalendarExport)) return false;
+      if (ParamsCase != other.ParamsCase) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (paramsCase_ == ParamsOneofCase.ContactExport) hash ^= ContactExport.GetHashCode();
+      if (paramsCase_ == ParamsOneofCase.CalendarExport) hash ^= CalendarExport.GetHashCode();
+      hash ^= (int) paramsCase_;
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (paramsCase_ == ParamsOneofCase.ContactExport) {
+        output.WriteRawTag(82);
+        output.WriteMessage(ContactExport);
+      }
+      if (paramsCase_ == ParamsOneofCase.CalendarExport) {
+        output.WriteRawTag(90);
+        output.WriteMessage(CalendarExport);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (paramsCase_ == ParamsOneofCase.ContactExport) {
+        output.WriteRawTag(82);
+        output.WriteMessage(ContactExport);
+      }
+      if (paramsCase_ == ParamsOneofCase.CalendarExport) {
+        output.WriteRawTag(90);
+        output.WriteMessage(CalendarExport);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (paramsCase_ == ParamsOneofCase.ContactExport) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(ContactExport);
+      }
+      if (paramsCase_ == ParamsOneofCase.CalendarExport) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(CalendarExport);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(CliRequest other) {
+      if (other == null) {
+        return;
+      }
+      switch (other.ParamsCase) {
+        case ParamsOneofCase.ContactExport:
+          if (ContactExport == null) {
+            ContactExport = new global::NativeBridge.ContactExportParams();
+          }
+          ContactExport.MergeFrom(other.ContactExport);
+          break;
+        case ParamsOneofCase.CalendarExport:
+          if (CalendarExport == null) {
+            CalendarExport = new global::NativeBridge.CalendarExportParams();
+          }
+          CalendarExport.MergeFrom(other.CalendarExport);
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 82: {
+            global::NativeBridge.ContactExportParams subBuilder = new global::NativeBridge.ContactExportParams();
+            if (paramsCase_ == ParamsOneofCase.ContactExport) {
+              subBuilder.MergeFrom(ContactExport);
+            }
+            input.ReadMessage(subBuilder);
+            ContactExport = subBuilder;
+            break;
+          }
+          case 90: {
+            global::NativeBridge.CalendarExportParams subBuilder = new global::NativeBridge.CalendarExportParams();
+            if (paramsCase_ == ParamsOneofCase.CalendarExport) {
+              subBuilder.MergeFrom(CalendarExport);
+            }
+            input.ReadMessage(subBuilder);
+            CalendarExport = subBuilder;
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 82: {
+            global::NativeBridge.ContactExportParams subBuilder = new global::NativeBridge.ContactExportParams();
+            if (paramsCase_ == ParamsOneofCase.ContactExport) {
+              subBuilder.MergeFrom(ContactExport);
+            }
+            input.ReadMessage(subBuilder);
+            ContactExport = subBuilder;
+            break;
+          }
+          case 90: {
+            global::NativeBridge.CalendarExportParams subBuilder = new global::NativeBridge.CalendarExportParams();
+            if (paramsCase_ == ParamsOneofCase.CalendarExport) {
+              subBuilder.MergeFrom(CalendarExport);
+            }
+            input.ReadMessage(subBuilder);
+            CalendarExport = subBuilder;
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// Parameters for contact export command.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class ContactExportParams : pb::IMessage<ContactExportParams>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<ContactExportParams> _parser = new pb::MessageParser<ContactExportParams>(() => new ContactExportParams());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<ContactExportParams> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::NativeBridge.NativeBridgeReflection.Descriptor.MessageTypes[1]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ContactExportParams() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ContactExportParams(ContactExportParams other) : this() {
+      folderName_ = other.folderName_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ContactExportParams Clone() {
+      return new ContactExportParams(this);
+    }
+
+    /// <summary>Field number for the "folder_name" field.</summary>
+    public const int FolderNameFieldNumber = 1;
+    private string folderName_ = "";
+    /// <summary>
+    /// Optional: specific folder name to export from (empty = default contacts folder)
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string FolderName {
+      get { return folderName_; }
+      set {
+        folderName_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as ContactExportParams);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(ContactExportParams other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (FolderName != other.FolderName) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (FolderName.Length != 0) hash ^= FolderName.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (FolderName.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(FolderName);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (FolderName.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(FolderName);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (FolderName.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(FolderName);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(ContactExportParams other) {
+      if (other == null) {
+        return;
+      }
+      if (other.FolderName.Length != 0) {
+        FolderName = other.FolderName;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            FolderName = input.ReadString();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            FolderName = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// Parameters for calendar export command.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class CalendarExportParams : pb::IMessage<CalendarExportParams>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<CalendarExportParams> _parser = new pb::MessageParser<CalendarExportParams>(() => new CalendarExportParams());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<CalendarExportParams> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::NativeBridge.NativeBridgeReflection.Descriptor.MessageTypes[2]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public CalendarExportParams() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public CalendarExportParams(CalendarExportParams other) : this() {
+      startDate_ = other.startDate_;
+      endDate_ = other.endDate_;
+      includePrivate_ = other.includePrivate_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public CalendarExportParams Clone() {
+      return new CalendarExportParams(this);
+    }
+
+    /// <summary>Field number for the "start_date" field.</summary>
+    public const int StartDateFieldNumber = 1;
+    private long startDate_;
+    /// <summary>
+    /// UTC ticks — start of export range
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public long StartDate {
+      get { return startDate_; }
+      set {
+        startDate_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "end_date" field.</summary>
+    public const int EndDateFieldNumber = 2;
+    private long endDate_;
+    /// <summary>
+    /// UTC ticks — end of export range
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public long EndDate {
+      get { return endDate_; }
+      set {
+        endDate_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "include_private" field.</summary>
+    public const int IncludePrivateFieldNumber = 3;
+    private bool includePrivate_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool IncludePrivate {
+      get { return includePrivate_; }
+      set {
+        includePrivate_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as CalendarExportParams);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(CalendarExportParams other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (StartDate != other.StartDate) return false;
+      if (EndDate != other.EndDate) return false;
+      if (IncludePrivate != other.IncludePrivate) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (StartDate != 0L) hash ^= StartDate.GetHashCode();
+      if (EndDate != 0L) hash ^= EndDate.GetHashCode();
+      if (IncludePrivate != false) hash ^= IncludePrivate.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (StartDate != 0L) {
+        output.WriteRawTag(8);
+        output.WriteInt64(StartDate);
+      }
+      if (EndDate != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(EndDate);
+      }
+      if (IncludePrivate != false) {
+        output.WriteRawTag(24);
+        output.WriteBool(IncludePrivate);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (StartDate != 0L) {
+        output.WriteRawTag(8);
+        output.WriteInt64(StartDate);
+      }
+      if (EndDate != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(EndDate);
+      }
+      if (IncludePrivate != false) {
+        output.WriteRawTag(24);
+        output.WriteBool(IncludePrivate);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (StartDate != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(StartDate);
+      }
+      if (EndDate != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(EndDate);
+      }
+      if (IncludePrivate != false) {
+        size += 1 + 1;
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(CalendarExportParams other) {
+      if (other == null) {
+        return;
+      }
+      if (other.StartDate != 0L) {
+        StartDate = other.StartDate;
+      }
+      if (other.EndDate != 0L) {
+        EndDate = other.EndDate;
+      }
+      if (other.IncludePrivate != false) {
+        IncludePrivate = other.IncludePrivate;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            StartDate = input.ReadInt64();
+            break;
+          }
+          case 16: {
+            EndDate = input.ReadInt64();
+            break;
+          }
+          case 24: {
+            IncludePrivate = input.ReadBool();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            StartDate = input.ReadInt64();
+            break;
+          }
+          case 16: {
+            EndDate = input.ReadInt64();
+            break;
+          }
+          case 24: {
+            IncludePrivate = input.ReadBool();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
   /// <summary>
   /// Export result containing vCard data
   /// </summary>
@@ -63,7 +860,7 @@ namespace NativeBridge {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::NativeBridge.NativeBridgeReflection.Descriptor.MessageTypes[0]; }
+      get { return global::NativeBridge.NativeBridgeReflection.Descriptor.MessageTypes[3]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -92,6 +889,9 @@ namespace NativeBridge {
           break;
         case ExportDataOneofCase.MergedVcards:
           MergedVcards = other.MergedVcards;
+          break;
+        case ExportDataOneofCase.Calendar:
+          Calendar = other.Calendar.Clone();
           break;
       }
 
@@ -174,6 +974,21 @@ namespace NativeBridge {
       }
     }
 
+    /// <summary>Field number for the "calendar" field.</summary>
+    public const int CalendarFieldNumber = 4;
+    /// <summary>
+    /// iCalendar data
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::NativeBridge.CalendarData Calendar {
+      get { return exportDataCase_ == ExportDataOneofCase.Calendar ? (global::NativeBridge.CalendarData) exportData_ : null; }
+      set {
+        exportData_ = value;
+        exportDataCase_ = value == null ? ExportDataOneofCase.None : ExportDataOneofCase.Calendar;
+      }
+    }
+
     private object exportData_;
     /// <summary>Enum of possible cases for the "export_data" oneof.</summary>
     public enum ExportDataOneofCase {
@@ -181,6 +996,7 @@ namespace NativeBridge {
       Echo = 1,
       Vcards = 2,
       MergedVcards = 3,
+      Calendar = 4,
     }
     private ExportDataOneofCase exportDataCase_ = ExportDataOneofCase.None;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -214,6 +1030,7 @@ namespace NativeBridge {
       if (Echo != other.Echo) return false;
       if (!object.Equals(Vcards, other.Vcards)) return false;
       if (MergedVcards != other.MergedVcards) return false;
+      if (!object.Equals(Calendar, other.Calendar)) return false;
       if (ExportDataCase != other.ExportDataCase) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
@@ -225,6 +1042,7 @@ namespace NativeBridge {
       if (HasEcho) hash ^= Echo.GetHashCode();
       if (exportDataCase_ == ExportDataOneofCase.Vcards) hash ^= Vcards.GetHashCode();
       if (HasMergedVcards) hash ^= MergedVcards.GetHashCode();
+      if (exportDataCase_ == ExportDataOneofCase.Calendar) hash ^= Calendar.GetHashCode();
       hash ^= (int) exportDataCase_;
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
@@ -256,6 +1074,10 @@ namespace NativeBridge {
         output.WriteRawTag(26);
         output.WriteString(MergedVcards);
       }
+      if (exportDataCase_ == ExportDataOneofCase.Calendar) {
+        output.WriteRawTag(34);
+        output.WriteMessage(Calendar);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -278,6 +1100,10 @@ namespace NativeBridge {
         output.WriteRawTag(26);
         output.WriteString(MergedVcards);
       }
+      if (exportDataCase_ == ExportDataOneofCase.Calendar) {
+        output.WriteRawTag(34);
+        output.WriteMessage(Calendar);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -296,6 +1122,9 @@ namespace NativeBridge {
       }
       if (HasMergedVcards) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(MergedVcards);
+      }
+      if (exportDataCase_ == ExportDataOneofCase.Calendar) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Calendar);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -321,6 +1150,12 @@ namespace NativeBridge {
           break;
         case ExportDataOneofCase.MergedVcards:
           MergedVcards = other.MergedVcards;
+          break;
+        case ExportDataOneofCase.Calendar:
+          if (Calendar == null) {
+            Calendar = new global::NativeBridge.CalendarData();
+          }
+          Calendar.MergeFrom(other.Calendar);
           break;
       }
 
@@ -360,6 +1195,15 @@ namespace NativeBridge {
             MergedVcards = input.ReadString();
             break;
           }
+          case 34: {
+            global::NativeBridge.CalendarData subBuilder = new global::NativeBridge.CalendarData();
+            if (exportDataCase_ == ExportDataOneofCase.Calendar) {
+              subBuilder.MergeFrom(Calendar);
+            }
+            input.ReadMessage(subBuilder);
+            Calendar = subBuilder;
+            break;
+          }
         }
       }
     #endif
@@ -396,6 +1240,15 @@ namespace NativeBridge {
             MergedVcards = input.ReadString();
             break;
           }
+          case 34: {
+            global::NativeBridge.CalendarData subBuilder = new global::NativeBridge.CalendarData();
+            if (exportDataCase_ == ExportDataOneofCase.Calendar) {
+              subBuilder.MergeFrom(Calendar);
+            }
+            input.ReadMessage(subBuilder);
+            Calendar = subBuilder;
+            break;
+          }
         }
       }
     }
@@ -418,7 +1271,7 @@ namespace NativeBridge {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::NativeBridge.NativeBridgeReflection.Descriptor.MessageTypes[1]; }
+      get { return global::NativeBridge.NativeBridgeReflection.Descriptor.MessageTypes[4]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -594,6 +1447,250 @@ namespace NativeBridge {
   }
 
   /// <summary>
+  /// Calendar export result containing iCalendar event data
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class CalendarData : pb::IMessage<CalendarData>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<CalendarData> _parser = new pb::MessageParser<CalendarData>(() => new CalendarData());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<CalendarData> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::NativeBridge.NativeBridgeReflection.Descriptor.MessageTypes[5]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public CalendarData() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public CalendarData(CalendarData other) : this() {
+      ical_ = other.ical_;
+      eventCount_ = other.eventCount_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public CalendarData Clone() {
+      return new CalendarData(this);
+    }
+
+    /// <summary>Field number for the "ical" field.</summary>
+    public const int IcalFieldNumber = 1;
+    private string ical_ = "";
+    /// <summary>
+    /// Full iCalendar string (VCALENDAR with VEVENT components)
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Ical {
+      get { return ical_; }
+      set {
+        ical_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "event_count" field.</summary>
+    public const int EventCountFieldNumber = 2;
+    private int eventCount_;
+    /// <summary>
+    /// Number of events in the export
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int EventCount {
+      get { return eventCount_; }
+      set {
+        eventCount_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as CalendarData);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(CalendarData other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Ical != other.Ical) return false;
+      if (EventCount != other.EventCount) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Ical.Length != 0) hash ^= Ical.GetHashCode();
+      if (EventCount != 0) hash ^= EventCount.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Ical.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Ical);
+      }
+      if (EventCount != 0) {
+        output.WriteRawTag(16);
+        output.WriteInt32(EventCount);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Ical.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Ical);
+      }
+      if (EventCount != 0) {
+        output.WriteRawTag(16);
+        output.WriteInt32(EventCount);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Ical.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Ical);
+      }
+      if (EventCount != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(EventCount);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(CalendarData other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Ical.Length != 0) {
+        Ical = other.Ical;
+      }
+      if (other.EventCount != 0) {
+        EventCount = other.EventCount;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Ical = input.ReadString();
+            break;
+          }
+          case 16: {
+            EventCount = input.ReadInt32();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Ical = input.ReadString();
+            break;
+          }
+          case 16: {
+            EventCount = input.ReadInt32();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
   /// CLI response wrapper
   /// </summary>
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
@@ -611,7 +1708,7 @@ namespace NativeBridge {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::NativeBridge.NativeBridgeReflection.Descriptor.MessageTypes[2]; }
+      get { return global::NativeBridge.NativeBridgeReflection.Descriptor.MessageTypes[6]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
