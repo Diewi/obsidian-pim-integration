@@ -7,6 +7,16 @@ namespace NativeBridge.OutlookComBridge
   public static class TestData
   {
     /// <summary>
+    /// Normalize line endings to CRLF as required by RFC 6350 (vCard format).
+    /// C# verbatim string literals inherit line endings from the source file,
+    /// which may be LF-only depending on the editor/git config.
+    /// </summary>
+    private static string NormalizeVCardLineEndings(string vcard)
+    {
+      return vcard.Replace("\r\n", "\n").Replace("\n", "\r\n");
+    }
+
+    /// <summary>
     /// Sample John Doe vCard for testing contact export functionality.
     /// This vCard contains common fields used in contact management.
     /// </summary>
@@ -57,6 +67,23 @@ EMAIL;TYPE=WORK:bob.johnson@techsolutions.example.com
 END:VCARD";
 
     /// <summary>
+    /// Sample vCard with special/non-ASCII characters for testing Unicode handling
+    /// across the protobuf bridge. Includes German umlauts, French accents,
+    /// Nordic characters, CJK, and Cyrillic.
+    /// </summary>
+    public const string SpecialCharsVCard = @"BEGIN:VCARD
+VERSION:3.0
+N:Müller-Lüdenscheidt;François;José;Dr.;
+FN:Dr. François José Müller-Lüdenscheidt
+ORG:Ångström & Associés GmbH
+TITLE:Geschäftsführer
+TEL;TYPE=WORK,VOICE:+49-30-123456
+EMAIL;TYPE=WORK:francois@angstroem-associes.example.com
+ADR;TYPE=WORK:;;Königstraße 42;München;Bayern;80331;Deutschland
+NOTE:Spëcîal chars: äöüß éèêë ñ ø å æ 日本語 中文 кириллица
+END:VCARD";
+
+    /// <summary>
     /// Gets an ExportResult containing test contact data with individual vCards.
     /// </summary>
     /// <returns>ExportResult with test vCards as list</returns>
@@ -64,9 +91,10 @@ END:VCARD";
     {
       var vcards = new List<string>
             {
-                JohnDoeVCard,
-                JaneSmithVCard,
-                BobJohnsonVCard
+                NormalizeVCardLineEndings(JohnDoeVCard),
+                NormalizeVCardLineEndings(JaneSmithVCard),
+                NormalizeVCardLineEndings(BobJohnsonVCard),
+                NormalizeVCardLineEndings(SpecialCharsVCard)
             };
 
       // Note: ExportResult uses oneof, so only one of vcards or mergedVcards can be set.
@@ -85,12 +113,13 @@ END:VCARD";
     {
       var vcards = new List<string>
             {
-                JohnDoeVCard,
-                JaneSmithVCard,
-                BobJohnsonVCard
+                NormalizeVCardLineEndings(JohnDoeVCard),
+                NormalizeVCardLineEndings(JaneSmithVCard),
+                NormalizeVCardLineEndings(BobJohnsonVCard),
+                NormalizeVCardLineEndings(SpecialCharsVCard)
             };
 
-      var mergedVcards = string.Join("\n", vcards);
+      var mergedVcards = string.Join("\r\n", vcards);
 
       return new NativeBridge.ExportResult
       {
@@ -108,7 +137,7 @@ END:VCARD";
       // Uses vcards field (list) for individual vCard access
       return new NativeBridge.ExportResult
       {
-        Vcards = new NativeBridge.VCardData { Vcards = { JohnDoeVCard } }
+        Vcards = new NativeBridge.VCardData { Vcards = { NormalizeVCardLineEndings(JohnDoeVCard) } }
       };
     }
 
@@ -120,7 +149,7 @@ END:VCARD";
     {
       return new NativeBridge.ExportResult
       {
-        MergedVcards = JohnDoeVCard
+        MergedVcards = NormalizeVCardLineEndings(JohnDoeVCard)
       };
     }
   }

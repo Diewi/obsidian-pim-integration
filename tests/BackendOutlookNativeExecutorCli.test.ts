@@ -55,6 +55,19 @@ TEL;TYPE=WORK,VOICE:+1-555-777-8888
 EMAIL;TYPE=WORK:bob.j@techstartup.com
 END:VCARD`;
 
+// vCard with special/non-ASCII characters in name and other fields
+const SPECIAL_CHARS_VCARD = `BEGIN:VCARD
+VERSION:3.0
+N:Müller-Lüdenscheidt;François;José;Dr.;
+FN:Dr. François José Müller-Lüdenscheidt
+ORG:Ångström & Associés GmbH
+TITLE:Geschäftsführer
+TEL;TYPE=WORK,VOICE:+49-30-123456
+EMAIL;TYPE=WORK:francois@angstroem-associes.example.com
+ADR;TYPE=WORK:;;Königstraße 42;München;Bayern;80331;Deutschland
+NOTE:Spëcîal chars: äöüß éèêë ñ ø å æ 日本語 中文 кириллица
+END:VCARD`;
+
 /**
  * Helper to create a length-prefixed protobuf buffer.
  */
@@ -215,6 +228,83 @@ describe('BackendOutlookNativeExecutorCli', () => {
 
       expect(result.isErr()).toBe(true);
       expect(result.unwrapErr()).toBe('No export result returned');
+    });
+  });
+
+  describe('special characters in vCards', () => {
+    it('should preserve special characters in merged vCard export', async () => {
+      const response = createTestDataResponse([], SPECIAL_CHARS_VCARD);
+      setupMockCli(response);
+
+      const executor = new BackendOutlookNativeExecutorCli(mockComBridgePath);
+      const result = await executor.exportContacts();
+
+      expect(result.isOk()).toBe(true);
+      const vcard = result.unwrap();
+
+      // German umlauts and ß in name fields
+      expect(vcard).toContain('N:Müller-Lüdenscheidt;François;José;Dr.;');
+      expect(vcard).toContain('FN:Dr. François José Müller-Lüdenscheidt');
+
+      // Accented characters in org/title/address
+      expect(vcard).toContain('ORG:Ångström & Associés GmbH');
+      expect(vcard).toContain('TITLE:Geschäftsführer');
+      expect(vcard).toContain('ADR;TYPE=WORK:;;Königstraße 42;München;Bayern;80331;Deutschland');
+
+      // Mixed scripts in NOTE field
+      expect(vcard).toContain('äöüß éèêë ñ ø å æ 日本語 中文 кириллица');
+    });
+
+    it('should preserve special characters in individual vCard export', async () => {
+      const vcards = [SPECIAL_CHARS_VCARD, JOHN_DOE_VCARD];
+      const response = createTestDataResponse(vcards);
+      setupMockCli(response);
+
+      const executor = new BackendOutlookNativeExecutorCli(mockComBridgePath);
+      const result = await executor.exportContactsAsVCards();
+
+      expect(result.isOk()).toBe(true);
+      const resultVcards = result.unwrap();
+
+      expect(resultVcards).toHaveLength(2);
+
+      // First vCard: special characters contact
+      expect(resultVcards[0]).toContain('FN:Dr. François José Müller-Lüdenscheidt');
+      expect(resultVcards[0]).toContain('N:Müller-Lüdenscheidt;François;José;Dr.;');
+      expect(resultVcards[0]).toContain('ORG:Ångström & Associés GmbH');
+      expect(resultVcards[0]).toContain('日本語 中文 кириллица');
+
+      // Second vCard: plain ASCII contact still intact
+      expect(resultVcards[1]).toContain('FN:John Doe');
+    });
+
+    it('should survive protobuf round-trip with special characters', async () => {
+      // Build a protobuf response with special chars, encode it, then decode
+      const response: native_bridge.ICliResponse = {
+        success: true,
+        command: 'export-contacts',
+        timestamp: Date.now(),
+        exportResult: { vcards: { vcards: [SPECIAL_CHARS_VCARD] } },
+      };
+
+      // Encode and decode through protobuf to verify round-trip integrity
+      const encoded = native_bridge.CliResponse.encode(response).finish();
+      const decoded = native_bridge.CliResponse.decode(encoded);
+
+      const vcards = decoded.exportResult?.vcards?.vcards;
+      expect(vcards).toBeDefined();
+      expect(vcards).toHaveLength(1);
+
+      const vcard = vcards![0];
+      expect(vcard).toContain('Müller-Lüdenscheidt');
+      expect(vcard).toContain('François');
+      expect(vcard).toContain('Ångström');
+      expect(vcard).toContain('Geschäftsführer');
+      expect(vcard).toContain('Königstraße');
+      expect(vcard).toContain('München');
+      expect(vcard).toContain('日本語');
+      expect(vcard).toContain('中文');
+      expect(vcard).toContain('кириллица');
     });
   });
 
@@ -431,10 +521,11 @@ describe('BackendOutlookNativeExecutorCli Integration Tests', () => {
       expect(result.isOk()).toBe(true);
       const vcards = result.unwrap();
 
-      // Should contain the three test contacts
+      // Should contain the four test contacts (including special characters)
       expect(vcards).toContain('FN:John Doe');
       expect(vcards).toContain('FN:Jane Smith');
       expect(vcards).toContain('FN:Bob Johnson');
+      expect(vcards).toContain('FN:Dr. François José Müller-Lüdenscheidt');
 
       // Verify vCard structure
       expect(vcards).toContain('BEGIN:VCARD');
@@ -452,8 +543,8 @@ describe('BackendOutlookNativeExecutorCli Integration Tests', () => {
       expect(result.isOk()).toBe(true);
       const vcards = result.unwrap();
 
-      // Should have exactly 3 test contacts
-      expect(vcards).toHaveLength(3);
+      // Should have exactly 4 test contacts
+      expect(vcards).toHaveLength(4);
 
       // Verify each vCard
       expect(vcards[0]).toContain('FN:John Doe');
@@ -465,6 +556,9 @@ describe('BackendOutlookNativeExecutorCli Integration Tests', () => {
 
       expect(vcards[2]).toContain('FN:Bob Johnson');
       expect(vcards[2]).toContain('ORG:Tech Startup');
+
+      expect(vcards[3]).toContain('FN:Dr. François José Müller-Lüdenscheidt');
+      expect(vcards[3]).toContain('ORG:Ångström & Associés GmbH');
 
       console.log(`✓ Received ${vcards.length} individual vCards`);
     }, 10000);
@@ -493,6 +587,34 @@ describe('BackendOutlookNativeExecutorCli Integration Tests', () => {
       expect(vcards).toContain('John Doe');
 
       console.log('✓ JSON mode works with test data');
+    }, 10000);
+
+    it('should preserve special characters through real CLI round-trip', async () => {
+      const executor = new BackendOutlookNativeExecutorCli(comBridgePath!, false, true);
+
+      const result = await executor.exportContactsAsVCards();
+
+      expect(result.isOk()).toBe(true);
+      const vcards = result.unwrap();
+
+      // Find the special characters vCard
+      const specialVcard = vcards.find((v) => v.includes('Müller-Lüdenscheidt'));
+      expect(specialVcard).toBeDefined();
+
+      // German umlauts and ß
+      expect(specialVcard).toContain('N:Müller-Lüdenscheidt;François;José;Dr.;');
+      expect(specialVcard).toContain('TITLE:Geschäftsführer');
+      expect(specialVcard).toContain('ADR;TYPE=WORK:;;Königstraße 42;München;Bayern;80331;Deutschland');
+
+      // Nordic and French accented characters
+      expect(specialVcard).toContain('ORG:Ångström & Associés GmbH');
+
+      // CJK and Cyrillic in NOTE
+      expect(specialVcard).toContain('日本語');
+      expect(specialVcard).toContain('中文');
+      expect(specialVcard).toContain('кириллица');
+
+      console.log('✓ Special characters preserved through CLI round-trip');
     }, 10000);
   });
 });
