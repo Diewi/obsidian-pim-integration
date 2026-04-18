@@ -388,7 +388,6 @@ npm test
 
 ## TODO
 - Move setting reset command to settings as a button
-- Check if the NativeBridge.cs can be removed from the proto folder
 - Write to obsidian dev board to enable native threads in exlectron platform
 - Publish obsidian plugin after typed-vcards are published to NPM
 - Validate the use of direct code compilation via edge again now that all dependencies are known

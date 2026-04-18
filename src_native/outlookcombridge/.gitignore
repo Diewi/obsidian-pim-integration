@@ -9,3 +9,4 @@
 
 # Generated source files
 /protobuf_bin/**
+/proto/NativeBridge.cs
