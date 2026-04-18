@@ -105,25 +105,6 @@ export default class PimIntegrationPlugin extends Plugin {
       },
     });
 
-    this.addCommand({
-      id: 'reset-settings-to-default',
-      name: 'Reset Settings to Default',
-      callback: () => {
-        if (!this.pimBackendManager) {
-          ObsidianUtils.logAndNotice('Error: Backend manager not initialized');
-          return;
-        }
-        // TODO: move PimIntegrationImportContacts such that instantiation is not necessary here
-        const backendRes = this.pimBackendManager.getSelectedBackendType();
-        new PimIntegrationImportContacts(
-          this.app,
-          this.pluginDir,
-          this.settingsMgr,
-          backendRes.unwrap()
-        ).resetSettingsToDefault();
-      },
-    });
-
     // This adds a settings tab so the user can configure various aspects of the plugin
     const settingsController = PimIntegrationSettingsController.create(
       this.app,

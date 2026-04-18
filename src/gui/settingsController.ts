@@ -1,7 +1,8 @@
-import { App, PluginSettingTab, Setting, TFile, TFolder } from 'obsidian';
+import { App, Notice, PluginSettingTab, Setting, TFile, TFolder } from 'obsidian';
 import { GenericTextSuggester } from './suggesters/genericTextSuggester';
 import { InputValidator } from './inputValidator';
 import {
+  DEFAULT_SETTINGS,
   PimIntegrationSettings,
   PimIntegrationSettingsMgr,
   DEFAULT_DOTNET_PATH,
@@ -64,20 +65,46 @@ export class PimIntegrationSettingsController extends PluginSettingTab {
     containerEl.empty();
     containerEl.createEl('h1', { text: 'Obsidian PIM Integration Settings' });
 
-    containerEl.createEl('h3', { text: 'Backend' });
-    this.addBackendSetting();
-    this.addBackendVariantSetting();
-    this.addDotnetPathSetting();
+    this.addResetAllSettingsButton();
 
-    containerEl.createEl('h3', { text: 'Contacts' });
-    this.addContactFolderPathSetting();
-    this.addContactTemplatePathSetting();
+    try {
+      containerEl.createEl('h3', { text: 'Backend' });
+      this.addBackendSetting();
+      this.addBackendVariantSetting();
+      this.addDotnetPathSetting();
 
-    containerEl.createEl('h3', { text: 'Calendar' });
-    this.addCalendarFolderPathSetting();
-    this.addCalendarTemplatePathSetting();
-    this.addIncludePrivateCalendarEventsSetting();
-    this.addOutlookCalendarNameSetting();
+      containerEl.createEl('h3', { text: 'Contacts' });
+      this.addContactFolderPathSetting();
+      this.addContactTemplatePathSetting();
+
+      containerEl.createEl('h3', { text: 'Calendar' });
+      this.addCalendarFolderPathSetting();
+      this.addCalendarTemplatePathSetting();
+      this.addIncludePrivateCalendarEventsSetting();
+      this.addOutlookCalendarNameSetting();
+    } catch (e) {
+      containerEl.createEl('p', {
+        text: `Error rendering settings: ${e instanceof Error ? e.message : String(e)}`,
+        cls: 'mod-warning',
+      });
+    }
+  }
+
+  private addResetAllSettingsButton() {
+    new Setting(this.containerEl)
+      .setName('Reset all settings')
+      .setDesc('Restore every setting to its factory default')
+      .addButton((btn) => {
+        btn
+          .setButtonText('Reset to Defaults')
+          .setWarning()
+          .onClick(async () => {
+            await this.settingsMgr.resetSettingsToDefault();
+            this.settings = { ...DEFAULT_SETTINGS };
+            new Notice('Settings have been reset to defaults.');
+            this.display();
+          });
+      });
   }
 
   // TODO: Provide generic setting modules for different setting types (List: Enum, file picker, folder picker, text, number, boolean)

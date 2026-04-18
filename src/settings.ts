@@ -35,7 +35,7 @@ export interface PimIntegrationSettings {
   dotnetPath: string;
 }
 
-const DEFAULT_SETTINGS: PimIntegrationSettings = {
+export const DEFAULT_SETTINGS: PimIntegrationSettings = {
   selectedPimBackend: new BackendTypeOutlookDescriptor(),
   selectedPimBackendVariant: new BackendVariantOutlook15PlusDescriptor(),
   contactFolderPath: 'Resources/Contacts',
