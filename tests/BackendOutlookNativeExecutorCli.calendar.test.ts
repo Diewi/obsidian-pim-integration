@@ -12,43 +12,10 @@ import { BackendOutlookNativeExecutorCli } from '../src/pimbackend/outlook/Backe
 import { native_bridge } from '../src_generated/native_bridge';
 import * as child_process from 'child_process';
 import * as fs from 'fs';
+import { TEST_ICALENDAR, TEST_ICALENDAR_EVENT_COUNT } from './fixtures/testCalendarData';
 
 jest.mock('child_process');
 jest.mock('fs');
-
-// Test iCalendar data matching C# TestData.TestICalendar
-const TEST_ICALENDAR =
-  'BEGIN:VCALENDAR\r\n' +
-  'VERSION:2.0\r\n' +
-  'PRODID:-//OutlookComBridge//Test//EN\r\n' +
-  'METHOD:PUBLISH\r\n' +
-  'BEGIN:VEVENT\r\n' +
-  'DTSTART:20260410T090000Z\r\n' +
-  'DTEND:20260410T100000Z\r\n' +
-  'SUMMARY:Team Standup\r\n' +
-  'DESCRIPTION:Daily standup meeting with the engineering team.\r\n' +
-  'LOCATION:Conference Room A\r\n' +
-  'UID:test-event-001@outlookcombridge\r\n' +
-  'END:VEVENT\r\n' +
-  'BEGIN:VEVENT\r\n' +
-  'DTSTART:20260415T140000Z\r\n' +
-  'DTEND:20260415T153000Z\r\n' +
-  'SUMMARY:Project Review\r\n' +
-  'DESCRIPTION:Quarterly project review with stakeholders.\r\n' +
-  'LOCATION:Board Room\r\n' +
-  'UID:test-event-002@outlookcombridge\r\n' +
-  'END:VEVENT\r\n' +
-  'BEGIN:VEVENT\r\n' +
-  'DTSTART:20260420T110000Z\r\n' +
-  'DTEND:20260420T120000Z\r\n' +
-  'SUMMARY:Lunch with Müller & Associés\r\n' +
-  'DESCRIPTION:Business lunch — discuss Ångström project timeline.\r\n' +
-  'LOCATION:Restaurant Königshof, München\r\n' +
-  'UID:test-event-003@outlookcombridge\r\n' +
-  'END:VEVENT\r\n' +
-  'END:VCALENDAR\r\n';
-
-const TEST_ICALENDAR_EVENT_COUNT = 3;
 
 /**
  * Helper to create a length-prefixed protobuf buffer.
@@ -278,6 +245,38 @@ describe('BackendOutlookNativeExecutorCli - Calendar Export', () => {
       const stdinData = mockStdin.end.mock.calls[0][0];
       const request = native_bridge.CliRequest.decode(stdinData);
       expect(request.calendarExport!.includePrivate).toBe(false);
+    });
+
+    it('should send calendarFolder in CliRequest when specified', async () => {
+      const response = createCalendarTestResponse();
+      const { mockStdin } = setupMockCliWithStdin(response);
+
+      const executor = new BackendOutlookNativeExecutorCli(mockComBridgePath);
+      await executor.exportCalendar(
+        new Date('2026-04-01T00:00:00Z'),
+        new Date('2026-04-30T23:59:59Z'),
+        false,
+        'Testcalendar'
+      );
+
+      const stdinData = mockStdin.end.mock.calls[0][0];
+      const request = native_bridge.CliRequest.decode(stdinData);
+      expect(request.calendarExport!.calendarFolder).toBe('Testcalendar');
+    });
+
+    it('should send empty calendarFolder when not specified', async () => {
+      const response = createCalendarTestResponse();
+      const { mockStdin } = setupMockCliWithStdin(response);
+
+      const executor = new BackendOutlookNativeExecutorCli(mockComBridgePath);
+      await executor.exportCalendar(
+        new Date('2026-04-01T00:00:00Z'),
+        new Date('2026-04-30T23:59:59Z')
+      );
+
+      const stdinData = mockStdin.end.mock.calls[0][0];
+      const request = native_bridge.CliRequest.decode(stdinData);
+      expect(request.calendarExport!.calendarFolder).toBe('');
     });
 
     it('should use stdin pipe when request is provided', async () => {

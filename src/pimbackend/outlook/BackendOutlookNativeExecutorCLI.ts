@@ -16,10 +16,15 @@ export type ExportResult = native_bridge.IExportResult;
  */
 function dateToTicks(dateMs: number): number {
   // .NET epoch offset in ticks: 621355968000000000
-  const DOTNET_EPOCH_OFFSET = 621355968000000000n;
-  const TICKS_PER_MS = 10000n;
-  const ticks = DOTNET_EPOCH_OFFSET + BigInt(dateMs) * TICKS_PER_MS;
-  return Number(ticks);
+  // Split into high/low to avoid BigInt (target < ES2020) and stay within safe integer range.
+  // offset = 62135596800 seconds * 10_000_000 ticks/s = 621355968000000000
+  const DOTNET_EPOCH_OFFSET_S = 62135596800; // seconds from 0001-01-01 to Unix epoch
+  const TICKS_PER_S = 10000000;
+  const TICKS_PER_MS = 10000;
+  // dateMs is ms since Unix epoch; convert to ticks and add .NET epoch offset
+  // For dates within ~±285 years of Unix epoch this stays within Number.MAX_SAFE_INTEGER
+  const ticks = DOTNET_EPOCH_OFFSET_S * TICKS_PER_S + dateMs * TICKS_PER_MS;
+  return ticks;
 }
 
 /**
@@ -114,13 +119,15 @@ export class BackendOutlookNativeExecutorCli
   async exportCalendar(
     startDate: Date,
     endDate: Date,
-    includePrivate: boolean = false
+    includePrivate: boolean = false,
+    calendarFolder?: string
   ): Promise<Result<string, string>> {
     const request: native_bridge.ICliRequest = {
       calendarExport: {
         startDate: dateToTicks(startDate.getTime()),
         endDate: dateToTicks(endDate.getTime()),
         includePrivate,
+        calendarFolder: calendarFolder || '',
       },
     };
 

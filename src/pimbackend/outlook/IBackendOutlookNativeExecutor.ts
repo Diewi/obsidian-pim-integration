@@ -25,11 +25,13 @@ export interface IBackendOutlookNativeExecutor extends INativeExecutor {
    * @param startDate Start of the export range (UTC).
    * @param endDate End of the export range (UTC).
    * @param includePrivate Whether to include private events.
+   * @param calendarFolder Optional calendar folder name (empty = default calendar).
    * @returns Promise resolving to iCalendar string or error message.
    */
   exportCalendar(
     startDate: Date,
     endDate: Date,
-    includePrivate?: boolean
+    includePrivate?: boolean,
+    calendarFolder?: string
   ): Promise<Result<string, string>>;
 }

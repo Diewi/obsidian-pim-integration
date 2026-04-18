@@ -34,6 +34,8 @@ message CalendarExportParams {
     int64 start_date = 1;   // UTC ticks — start of export range
     int64 end_date = 2;     // UTC ticks — end of export range
     bool include_private = 3;
+    // Optional: specific calendar folder name (empty = default calendar)
+    string calendar_folder = 4;
 }
 
 // ============================================================================

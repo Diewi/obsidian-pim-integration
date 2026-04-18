@@ -1,4 +1,6 @@
 using Microsoft.Office.Interop.Outlook;
+using System.Linq;
+using System.Runtime.InteropServices;
 using NativeBridge;
 
 namespace NativeBridge.OutlookComBridge
@@ -17,14 +19,25 @@ namespace NativeBridge.OutlookComBridge
     /// <param name="startDate">Start of the export range (UTC).</param>
     /// <param name="endDate">End of the export range (UTC).</param>
     /// <param name="includePrivate">Whether to include private events.</param>
+    /// <param name="calendarFolder">Optional calendar folder name. Empty or null uses the default calendar.</param>
     /// <returns>ExportResult with CalendarData containing the iCalendar string.</returns>
-    public ExportResult ExportCalendarRange(DateTime startDate, DateTime endDate, bool includePrivate)
+    public ExportResult ExportCalendarRange(DateTime startDate, DateTime endDate, bool includePrivate, string? calendarFolder = null)
     {
+      Application? outlookApp = null;
+      MAPIFolder? folder = null;
+      CalendarSharing? calSharing = null;
       try
       {
-        var outlookApp = new Application();
-        var calendarFolder = outlookApp.Session.GetDefaultFolder(OlDefaultFolders.olFolderCalendar);
-        var calSharing = calendarFolder.GetCalendarExporter();
+        outlookApp = new Application();
+        if (!string.IsNullOrEmpty(calendarFolder))
+        {
+          folder = FindCalendarFolder(outlookApp, calendarFolder);
+        }
+        else
+        {
+          folder = outlookApp.Session.GetDefaultFolder(OlDefaultFolders.olFolderCalendar);
+        }
+        calSharing = folder.GetCalendarExporter();
 
         calSharing.StartDate = startDate;
         calSharing.EndDate = endDate;
@@ -64,6 +77,35 @@ namespace NativeBridge.OutlookComBridge
         // Return empty result on error — CLI layer will handle errors
         return new ExportResult();
       }
+      finally
+      {
+        if (calSharing != null) Marshal.ReleaseComObject(calSharing);
+        if (folder != null) Marshal.ReleaseComObject(folder);
+        if (outlookApp != null) Marshal.ReleaseComObject(outlookApp);
+      }
+    }
+
+    /// <summary>
+    /// Find a calendar folder by name within the default calendar folder's subfolders.
+    /// Searches direct subfolders of the default calendar folder.
+    /// </summary>
+    /// <param name="outlookApp">Outlook application instance.</param>
+    /// <param name="folderName">Name of the calendar folder to find.</param>
+    /// <returns>The matching MAPIFolder.</returns>
+    /// <exception cref="System.Exception">Thrown if the folder is not found.</exception>
+    private static MAPIFolder FindCalendarFolder(Application outlookApp, string folderName)
+    {
+      var defaultCalendar = outlookApp.Session.GetDefaultFolder(OlDefaultFolders.olFolderCalendar);
+      foreach (MAPIFolder subfolder in defaultCalendar.Folders)
+      {
+        if (string.Equals(subfolder.Name, folderName, StringComparison.OrdinalIgnoreCase))
+        {
+          return subfolder;
+        }
+      }
+      throw new System.Exception($"Calendar folder '{folderName}' not found. " +
+        "Available folders: " + string.Join(", ",
+          defaultCalendar.Folders.Cast<MAPIFolder>().Select(f => f.Name)));
     }
 
     /// <summary>

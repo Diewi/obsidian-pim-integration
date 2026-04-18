@@ -16,13 +16,13 @@ command. The contacts are transformed into Markdown files at a specified locatio
 ## Feature Overview
 
 - Contact import from MS Outlook using the C# API and Interop Assemblies
+- Calendar event import from Outlook — import all meetings for a given day into your vault as
+  individual Markdown notes, complete with frontmatter, attendee lists, and automatic linking
+  between recurring meetings
 
 ### Planned
 
 - Contact import from remote CalDav
-- Meeting note creation (Outlook)
-  - individual appointment export from Outlook (refs VBAs in Obisdian-For-Business)
-  - Import all meetings for a day using a command + form in Obsidian
 **TDB**
 
 ## Installation
@@ -85,6 +85,205 @@ into your vault and point the plugin at it — it is the quickest way to get sta
 
 For a full attribute table, examples and per-vCard-version availability, see
 `docs/ContactTemplateAttributes.md` in this repository.
+
+### Calendar event import
+
+The plugin can import all calendar events for a chosen day from Outlook and create one Markdown
+note per event. Two commands are available in the Obsidian command palette:
+
+| Command | What it does |
+|---------|-------------|
+| **Import Calendar — Today** | Imports every event from today's calendar. |
+| **Import Calendar — Select Date** | Opens a date picker so you can choose any day. |
+
+Each imported note is rendered from the *Calendar Event Template* you configure in the
+plugin settings. A template is a normal Markdown file that contains placeholders which the
+plugin fills in with data from the calendar event.
+
+#### Plugin settings for calendar import
+
+Open *Settings → Obsidian PIM Integration* and scroll to the **Calendar** section. You will
+find three settings:
+
+| Setting | Purpose |
+|---------|---------|
+| **Calendar Event Path** | Where the generated note files are stored (see details below). |
+| **Calendar Event Template** | Path to the Markdown template file in your vault. |
+| **Outlook Calendar Folder** | *(Optional)* Name of the Outlook calendar folder to read from. Leave empty to use your default calendar. |
+| **Include Private Calendar Events** | When enabled, events marked as private or confidential in Outlook are also imported. Off by default — private/confidential events are silently skipped. |
+
+#### Calendar Event Path — how to define where notes are saved
+
+The *Calendar Event Path* tells the plugin where to save each event note. You have two options:
+
+**Option A — Folder only**
+Enter just a folder path. The plugin will auto-generate a filename from the event date and
+title.
+
+```
+Resources/Calendar
+```
+
+Result: `Resources/Calendar/2025-06-15 Weekly Standup.md`
+
+You can include placeholders in the folder path to organise notes into sub-folders
+automatically:
+
+```
+Calendar/${startDate|yyyy}/${startDate|yyyy-MM-dd}
+```
+
+Result: `Calendar/2025/2025-06-15/2025-06-15 Weekly Standup.md`
+
+**Option B — Full path with custom filename**
+End the path with `.md` to take full control over the file name. In this mode the filename
+**must contain at least one placeholder** so that each event gets its own file.
+
+```
+Calendar/${startDate|yyyy-MM-dd} ${summary}.md
+```
+
+Result: `Calendar/2025-06-15 Weekly Standup.md`
+
+> **Validation:** The settings field checks your input as you type and shows an error hint
+> if the path cannot be resolved (e.g. unknown placeholder, missing variable in the
+> filename, or empty path segments).
+
+> **Filename sanitization:** In full-path mode the plugin automatically replaces characters
+> that are invalid on Windows (`\ : * ? " < > |`) with `_` so that event subjects containing
+> colons or other special characters do not cause file-system errors.
+
+#### Writing a calendar event template
+
+A template is a Markdown file with placeholders written as `${propertyName}`. When an event
+is imported, each placeholder is replaced with the matching value from that event.
+
+**Available event properties:**
+
+| Placeholder | Description | Example value |
+|-------------|-------------|---------------|
+| `${summary}` | Event title / subject | `Weekly Standup` |
+| `${description}` | Event body text | *(multi-line text)* |
+| `${location}` | Location string | `Room 4.01` |
+| `${startDate\|format}` | Start date/time — **requires a format** (see below) | `2025-06-15 09:00` |
+| `${endDate\|format}` | End date/time — **requires a format** | `2025-06-15 09:30` |
+| `${durationMinutes}` | Duration in minutes | `30` |
+| `${uid}` | Unique calendar ID | `abc123@outlook` |
+| `${organizer}` | Organizer name or email | `Jane Doe` |
+| `${status}` | Status (CONFIRMED / TENTATIVE / CANCELLED) | `CONFIRMED` |
+| `${attendees}` | Comma-separated attendee names | `Jane Doe, John Smith` |
+| `${attendeeList[].name}` | Array of attendee names (one per line in a template, see below) | |
+| `${recurrenceRule}` | Recurrence rule (e.g. `FREQ=WEEKLY;BYDAY=MO`) | |
+| `${classType}` | Visibility class (`PUBLIC`, `PRIVATE`, `CONFIDENTIAL`) | `PUBLIC` |
+| `${previousEventLink}` | Wikilink to the previous occurrence note (recurring events only) | `[[2025-06-08 Weekly Standup]]` |
+
+#### Date and time formatting
+
+Dates must be formatted using a *pipe transform*. Write the property name, a vertical bar `|`,
+then a format pattern. The format uses the [date-fns format tokens](https://date-fns.org/docs/format):
+
+| Placeholder | Result |
+|-------------|--------|
+| `${startDate\|yyyy-MM-dd}` | `2025-06-15` |
+| `${startDate\|HH:mm}` | `09:00` |
+| `${startDate\|yyyy-MM-dd HH:mm}` | `2025-06-15 09:00` |
+| `${startDate\|eeee}` | `Sunday` |
+| `${startDate\|yyyy-MM-dd-eeee}` | `2025-06-15-Sunday` |
+
+Common tokens: `yyyy` = year, `MM` = month (01–12), `dd` = day, `HH` = hour (00–23),
+`mm` = minutes, `eeee` = weekday name.
+
+#### Attendee list (array template)
+
+To list every attendee on its own line, use the array-template syntax:
+
+```
+${attendeeList[].` - [ ] [[${name??Unknown}]]`}
+```
+
+This produces one line per attendee:
+```
+ - [ ] [[Jane Doe]]
+ - [ ] [[John Smith]]
+```
+
+The `??Unknown` part is a fallback — if an attendee has no name, `Unknown` is printed instead.
+
+#### Default values
+
+Use `??` to provide a fallback when a field might be empty:
+
+```
+${location??No location specified}
+```
+
+#### Carry-forward for recurring meetings
+
+When the same meeting repeats (e.g. a weekly standup), you often want to carry over certain
+sections — like open action items — into the next occurrence's note.
+
+**How it works:**
+
+1. **In your template**, place `${carryForward}` where you want the carried-over content to
+   appear (typically near the end).
+
+2. **In an imported meeting note**, mark any heading whose content should carry forward by
+   adding the Obsidian comment `%% carryForward %%` to the heading line. For example:
+
+   ```markdown
+   ### Next Actions %% carryForward %%
+   - [ ] Finish the design review
+   - [ ] Send follow-up email
+   ```
+
+3. When the *next* occurrence of that meeting is imported, the plugin finds the previous
+   note (via the event UID), reads it, extracts every section whose heading contains the
+   `%% carryForward %%` marker, and inserts that content where `${carryForward}` appears
+   in the template.
+
+4. The marker is preserved in the carried-over content, so the chain continues automatically
+   for future occurrences — you do not need to re-add it each time.
+
+> **Tip:** You can mark as many headings as you like. Each marked section (heading + all
+> content until the next heading of the same or higher level) will be carried forward.
+
+#### Linking to the previous occurrence
+
+The placeholder `${previousEventLink}` is automatically filled with a wikilink to the most
+recent earlier note that shares the same calendar UID. This only works for recurring events
+and requires that your template includes `uid: ${uid}` and `meetingDate: ${startDate|yyyy-MM-dd ...}`
+in the YAML frontmatter so the plugin can find previous notes.
+
+#### Recurring event exceptions (moved/modified instances)
+
+When Outlook exports a recurring event that has been moved or modified (e.g. a single
+occurrence rescheduled to a different time), the iCal data may contain exception entries
+with missing summary, organizer and attendees. The plugin automatically fills in these
+missing fields from the recurring series master so that every imported note has the correct
+title and participant information.
+
+#### Example template
+
+```markdown
+---
+tags: [Meetings]
+meetingDate: ${startDate|yyyy-MM-dd HH:mm}
+uid: ${uid}
+parent: "[[${startDate|yyyy-MM-dd-eeee}]]"
+previous: "${previousEventLink}"
+project:
+---
+### **Next Actions**
+
+### Participants %% fold %%
+${attendeeList[].` - [ ] [[${name??Unknown}]]`}
+
+### Agenda
+
+### Notes
+
+${carryForward}
+```
 
 ## Build Instructions
 
@@ -188,6 +387,8 @@ npm test
 
 
 ## TODO
+- Move setting reset command to settings as a button
+- Check if the NativeBridge.cs can be removed from the proto folder
 - Write to obsidian dev board to enable native threads in exlectron platform
 - Publish obsidian plugin after typed-vcards are published to NPM
 - Validate the use of direct code compilation via edge again now that all dependencies are known

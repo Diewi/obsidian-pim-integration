@@ -126,8 +126,8 @@ namespace OutlookComBridge.Tests
 
       // Assert
       Assert.True(response.Success);
-      // Test data should have 3 contacts
-      Assert.Equal(3, response.ExportResult.Vcards.Vcards.Count);
+      // Test data should have 4 contacts (John Doe, Jane Smith, Bob Johnson, SpecialChars)
+      Assert.Equal(4, response.ExportResult.Vcards.Vcards.Count);
     }
   }
 

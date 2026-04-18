@@ -65,4 +65,14 @@ export class BackendOutlookNativeExecutorEdge
       return Err(`Export failed: ${err}`);
     }
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async exportCalendar(
+    startDate: Date,
+    endDate: Date,
+    includePrivate?: boolean,
+    calendarFolder?: string
+  ): Promise<Result<string, string>> {
+    return Err('Calendar export via Edge is not yet implemented. Use CLI backend variant.');
+  }
 }

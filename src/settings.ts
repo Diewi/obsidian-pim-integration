@@ -16,6 +16,18 @@ export interface PimIntegrationSettings {
   selectedPimBackendVariant: IBackendVariantDescriptor<IBackendVariant>;
   contactFolderPath: string;
   targetTemplate: string;
+  calendarFolderPath: string;
+  calendarTemplate: string;
+  /**
+   * Whether to include private/confidential calendar events in the export.
+   * Default: false (private events are excluded).
+   */
+  includePrivateCalendarEvents: boolean;
+  /**
+   * Outlook calendar folder name for calendar export.
+   * Empty string means the user's default calendar.
+   */
+  outlookCalendarName: string;
   /**
    * Path to the .NET runtime installation directory.
    * Used by the Outlook backend for CoreCLR integration.
@@ -28,6 +40,10 @@ const DEFAULT_SETTINGS: PimIntegrationSettings = {
   selectedPimBackendVariant: new BackendVariantOutlook15PlusDescriptor(),
   contactFolderPath: 'Resources/Contacts',
   targetTemplate: 'Resources/Templates/Contact.md',
+  calendarFolderPath: 'Resources/Calendar',
+  calendarTemplate: 'Resources/Templates/CalendarEvent.md',
+  includePrivateCalendarEvents: false,
+  outlookCalendarName: '',
   dotnetPath: DEFAULT_DOTNET_PATH,
 };
 

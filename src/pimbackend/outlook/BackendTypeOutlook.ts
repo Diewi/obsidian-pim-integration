@@ -8,6 +8,9 @@ import { IBackendVariantOutlookParameters } from './IBackendVariantOutlookParame
 import { IBackendVariant, IBackendVariantDescriptor } from '../IBackendVariant';
 import { TypeScriptUtils } from '../../utils/typeScriptUtils';
 import { IContactBackend } from '../IContactBackend';
+import { ICalendarBackend } from '../ICalendarBackend';
+import { ICalendarImporterBackend } from '../../calendar/ICalendarImporterBackend';
+import { CalendarImporterBackendOutlook } from './CalendarImporterBackendOutlook';
 import { BackendOutlookDepsJsonGenerator } from './BackendOutlookDepsJsonGenerator';
 import { EdgeJsVersionReader } from '../NativeExecutorEdgeJsVersionReader';
 import * as path from 'path';
@@ -29,7 +32,7 @@ export class BackendTypeOutlookDescriptor implements IBackendTypeDescriptor<IBac
 }
 
 export class BackendTypeOutlook
-  implements IBackendType<IBackendVariantOutlookParameters>, IContactBackend
+  implements IBackendType<IBackendVariantOutlookParameters>, IContactBackend, ICalendarBackend
 {
   private static readonly OUTLOOK_COM_BRIDGE_DIR = 'outlookcombridge';
   private static readonly DEPS_JSON_FILENAME = 'OutlookComBridge.deps.json';
@@ -38,6 +41,8 @@ export class BackendTypeOutlook
   private readonly pluginDir: string;
   private readonly outlookcombridgeDir: string;
   private dotnetPath: string = DEFAULT_DOTNET_PATH_INTERNAL;
+  private outlookCalendarFolder: string = '';
+  private includePrivateCalendarEvents: boolean = false;
 
   private selectedVariant: IBackendVariantOutlookParameters | null = null;
 
@@ -62,6 +67,27 @@ export class BackendTypeOutlook
     return this.dotnetPath;
   }
 
+  // NOTE: These calendar-specific setters exist because the contact importer
+  // does not need them. Consider a unified settings object passed at
+  // construction time if more backend-specific settings are added.
+  /**
+   * Set whether to include private/confidential calendar events.
+   */
+  setIncludePrivateCalendarEvents(include: boolean): void {
+    this.includePrivateCalendarEvents = include;
+    console.log(`[BackendTypeOutlook] Include private calendar events: ${include}`);
+  }
+
+  /**
+   * Set the Outlook calendar folder name for calendar export.
+   * Empty string means the default calendar.
+   * @param folderName Name of the calendar folder in Outlook
+   */
+  setOutlookCalendarFolder(folderName: string): void {
+    this.outlookCalendarFolder = folderName || '';
+    console.log(`[BackendTypeOutlook] Outlook calendar folder set to: ${this.outlookCalendarFolder || '(default)'}`);
+  }
+
   getVariants(): IBackendVariantDescriptor<IBackendVariantOutlookParameters>[] {
     return [
       new BackendVariantOutlook15PlusDescriptor(),
@@ -69,7 +95,29 @@ export class BackendTypeOutlook
     ];
   }
 
-  createImporter(): Result<IContactImporterBackend, string> {
+  createCalendarImporter(): Result<ICalendarImporterBackend, string> {
+    try {
+      if (!this.selectedVariant) {
+        return Err(
+          'No backend variant selected. Please select a variant before creating a calendar importer.'
+        );
+      }
+      return Ok(
+        new CalendarImporterBackendOutlook(
+          this.outlookcombridgeDir,
+          'cli',
+          false,
+          this.dotnetPath,
+          this.outlookCalendarFolder,
+          this.includePrivateCalendarEvents
+        )
+      );
+    } catch (error) {
+      return Err(`Failed to create Calendar Importer Backend: ${String(error)}`);
+    }
+  }
+
+  createContactImporter(): Result<IContactImporterBackend, string> {
     try {
       if (!this.selectedVariant) {
         return Err(

@@ -9,6 +9,8 @@ import {
 } from './settings';
 import { PimIntegrationSettingsController } from './gui/settingsController';
 import { PimIntegrationImportContacts } from './gui/modals';
+import { PimIntegrationImportCalendar } from './gui/calendarModals';
+import { DatePickerModal } from './gui/datePickerModal';
 import { ObsidianUtils } from './utils/obsidianUtils';
 import { IBackendManager } from './pimbackend/IBackendManager';
 import { match } from 'oxide.ts';
@@ -86,6 +88,24 @@ export default class PimIntegrationPlugin extends Plugin {
     });
 
     this.addCommand({
+      id: 'import-calendar-today',
+      name: 'Import Calendar Events for Today',
+      callback: () => {
+        this.importCalendarForDate(new Date());
+      },
+    });
+
+    this.addCommand({
+      id: 'import-calendar-date',
+      name: 'Import Calendar Events for Date',
+      callback: async () => {
+        const date = await new DatePickerModal(this.app, new Date()).open();
+        if (!date) return;
+        this.importCalendarForDate(date);
+      },
+    });
+
+    this.addCommand({
       id: 'reset-settings-to-default',
       name: 'Reset Settings to Default',
       callback: () => {
@@ -122,6 +142,39 @@ export default class PimIntegrationPlugin extends Plugin {
 
   onunload() {}
 
+  // TOOD: Move close to calendar commands
+  private importCalendarForDate(date: Date) {
+    if (!this.pimBackendManager) {
+      ObsidianUtils.logAndNotice('Error: Backend manager not initialized');
+      return;
+    }
+    const backendRes = this.pimBackendManager.getSelectedBackendType();
+    if (backendRes.isErr()) {
+      ObsidianUtils.logAndNotice(
+        'Error: No PIM backend selected or could not be loaded: ' + backendRes.unwrapErr()
+      );
+      return;
+    }
+    const importer = new PimIntegrationImportCalendar(
+      this.app,
+      this.pluginDir,
+      this.settingsMgr,
+      backendRes.unwrap()
+    );
+    const dateStr = date.toISOString().slice(0, 10);
+    importer.importCalendarForDate(date).then((result) => {
+      match(result, {
+        Ok: (message) => {
+          ObsidianUtils.logAndNotice(`Calendar import for ${dateStr} completed: ${message}`);
+        },
+        Err: (error) => {
+          ObsidianUtils.logAndNotice(`Calendar import for ${dateStr} failed: ${error}`);
+        },
+      });
+    });
+    ObsidianUtils.logAndNotice(`Importing calendar events for ${dateStr}...`);
+  }
+
   // TODO: Use nested settings such that classes can load their own settings directly (settings sub-types)
   applySettings() {
     if (!this.pimBackendManager) {
@@ -146,6 +199,24 @@ export default class PimIntegrationPlugin extends Plugin {
           typeof selectedBackend.setDotnetPath === 'function'
         ) {
           selectedBackend.setDotnetPath(dotnetPath);
+        }
+
+        // Apply includePrivateCalendarEvents setting to Outlook backend if applicable
+        const includePrivateCalendarEvents = this.settingsMgr.getSettingValue('includePrivateCalendarEvents');
+        if (
+          'setIncludePrivateCalendarEvents' in selectedBackend &&
+          typeof selectedBackend.setIncludePrivateCalendarEvents === 'function'
+        ) {
+          selectedBackend.setIncludePrivateCalendarEvents(includePrivateCalendarEvents);
+        }
+
+        // Apply outlookCalendarName setting to Outlook backend if applicable
+        const outlookCalendarName = this.settingsMgr.getSettingValue('outlookCalendarName');
+        if (
+          'setOutlookCalendarFolder' in selectedBackend &&
+          typeof selectedBackend.setOutlookCalendarFolder === 'function'
+        ) {
+          selectedBackend.setOutlookCalendarFolder(outlookCalendarName);
         }
       } else {
         ObsidianUtils.logAndNotice(`Error loading PIM backend: ${res.unwrapErr()}`);

@@ -1,4 +1,4 @@
-import { TemplateEngine } from '../src/contacts/TemplateEngine';
+import { TemplateEngine } from '../src/templateEngine/TemplateEngine';
 import * as fs from 'fs';
 import * as path from 'path';
 import { vCardTs2_1 } from 'typed-vcard/src/vCardTs2_1';
@@ -14,7 +14,7 @@ describe('Test template engine', () => {
       address: { city: 'New York' },
     };
 
-    const result = templateEngine.substitute(template, data);
+    const result = templateEngine.substitute(template, data).unwrap();
     expect(result).toBe('Name: John Doe\nCity: New York');
   });
 
@@ -23,7 +23,7 @@ describe('Test template engine', () => {
     const data = {
       friends: [{ name: 'Alice' }, { name: 'Bob' }, { name: 'Charlie' }],
     };
-    const result = templateEngine.substitute(template, data);
+    const result = templateEngine.substitute(template, data).unwrap();
     expect(result).toBe('Friends:\nAlice,Bob,Charlie');
   });
   test('Test array with template substitution', () => {
@@ -35,7 +35,7 @@ describe('Test template engine', () => {
       ],
     };
     const template = 'Friends:\n${friends[].\`Friend: ${name} (${age})\`}';
-    const result = templateEngine.substitute(template, data);
+    const result = templateEngine.substitute(template, data).unwrap();
     console.log(result);
     expect(result).toBe('Friends:\nFriend: Alice (30)\nFriend: Bob (25)\nFriend: Charlie (35)');
   });
@@ -45,7 +45,7 @@ describe('Test template engine', () => {
     const data = {
       name: 'John Doe',
     };
-    const result = templateEngine.substitute(template, data);
+    const result = templateEngine.substitute(template, data).unwrap();
     expect(result).toBe('Name: John Doe\nPhone: ');
   });
 
@@ -64,7 +64,7 @@ describe('Test template engine', () => {
         },
       ],
     };
-    const result = templateEngine.substitute(template, data);
+    const result = templateEngine.substitute(template, data).unwrap();
     expect(result).toBe(
       'Teams:\nTeam: Alpha\nMembers:\nAlice\nBob\nTeam: Beta\nMembers:\nCharlie\nDavid'
     );
@@ -85,7 +85,7 @@ describe('Test template engine', () => {
         },
       ],
     };
-    const result = templateEngine.substitute(template, data);
+    const result = templateEngine.substitute(template, data).unwrap();
     expect(result).toBe(
       'First team: Alpha\nFirst member: Alice\nSecond team: Beta\nSecond member: David'
     );
@@ -96,7 +96,7 @@ describe('Test template engine', () => {
     const data = {
       emails: [{ value: 'john.doe@ibm.com', tag: 'work' }, { value: 'john.doe@personal.com' }],
     };
-    const result = templateEngine.substitute(template, data);
+    const result = templateEngine.substitute(template, data).unwrap();
     expect(result).toBe('Primary email: john.doe@ibm.com (work)');
   });
 });
@@ -121,7 +121,7 @@ describe('Test template engine with markdown', () => {
   });
 
   test('Test contact substitution for markdown file - version A', () => {
-    const result = templateEngine.substitute(markdownContactTemplateA, testVCardData);
+    const result = templateEngine.substitute(markdownContactTemplateA, testVCardData).unwrap();
     expect(result).toBe(
       '---\n' +
         'fullname: Doe, John\n' +
@@ -155,7 +155,7 @@ describe('Test template engine with markdown', () => {
   });
 
   test('Test contact substitution for markdown file - version B', () => {
-    const result = templateEngine.substitute(markdownContactTemplateB, testVCardData);
+    const result = templateEngine.substitute(markdownContactTemplateB, testVCardData).unwrap();
     expect(result).toBe(
       '---\n' +
         'fullname: Doe, John\n' +
@@ -192,7 +192,7 @@ describe('Test template engine with special characters', () => {
       givenName: 'François José',
       title: 'Geschäftsführer',
     };
-    const result = templateEngine.substitute(template, data);
+    const result = templateEngine.substitute(template, data).unwrap();
     expect(result).toBe('Name: Müller-Lüdenscheidt, François José\nTitle: Geschäftsführer');
   });
 
@@ -202,7 +202,7 @@ describe('Test template engine with special characters', () => {
       name: { familyName: 'Ångström', givenName: 'Bjørn' },
       address: { city: 'København' },
     };
-    const result = templateEngine.substitute(template, data);
+    const result = templateEngine.substitute(template, data).unwrap();
     expect(result).toBe('Contact: Ångström, Bjørn\nCity: København');
   });
 
@@ -216,7 +216,7 @@ describe('Test template engine with special characters', () => {
         { name: 'Müller' },
       ],
     };
-    const result = templateEngine.substitute(template, data);
+    const result = templateEngine.substitute(template, data).unwrap();
     expect(result).toBe('Contacts:\n田中太郎,王小明,Иванов Пётр,Müller');
   });
 
@@ -229,7 +229,7 @@ describe('Test template engine with special characters', () => {
         { name: '佐藤花子', role: 'エンジニア' },
       ],
     };
-    const result = templateEngine.substitute(template, data);
+    const result = templateEngine.substitute(template, data).unwrap();
     expect(result).toBe(
       'Team:\n- François Müller (Geschäftsführer)\n- Bjørn Ångström (Développeur)\n- 佐藤花子 (エンジニア)'
     );
@@ -238,7 +238,7 @@ describe('Test template engine with special characters', () => {
   test('Test default value with special characters', () => {
     const template = 'Org: ${organization??Keine Angabe}\nNote: ${note??Keine Notiz verfügbar}';
     const data = {} as Record<string, unknown>;
-    const result = templateEngine.substitute(template, data);
+    const result = templateEngine.substitute(template, data).unwrap();
     expect(result).toBe('Org: Keine Angabe\nNote: Keine Notiz verfügbar');
   });
 
@@ -250,7 +250,7 @@ describe('Test template engine with special characters', () => {
         { value: 'bjørn@ångström.example.com' },
       ],
     };
-    const result = templateEngine.substitute(template, data);
+    const result = templateEngine.substitute(template, data).unwrap();
     expect(result).toBe('Primary: françois@müller.example.com (Arbeit)');
   });
 
@@ -274,22 +274,22 @@ describe('Test template engine with special characters', () => {
 
     // Test name fields
     const nameTemplate = '${name.familyName}, ${name.givenName}';
-    const nameResult = templateEngine.substitute(nameTemplate, vCard);
+    const nameResult = templateEngine.substitute(nameTemplate, vCard).unwrap();
     expect(nameResult).toBe('Müller-Lüdenscheidt, François');
 
     // Test organization
     const orgTemplate = '${organization[].value}';
-    const orgResult = templateEngine.substitute(orgTemplate, vCard);
+    const orgResult = templateEngine.substitute(orgTemplate, vCard).unwrap();
     expect(orgResult).toContain('Ångström & Associés GmbH');
 
     // Test title
     const titleTemplate = '${title[].value}';
-    const titleResult = templateEngine.substitute(titleTemplate, vCard);
+    const titleResult = templateEngine.substitute(titleTemplate, vCard).unwrap();
     expect(titleResult).toBe('Geschäftsführer');
 
     // Test address with Königstraße and München
     const addrTemplate = '${addresses[].`${tag}: ${value}`}';
-    const addrResult = templateEngine.substitute(addrTemplate, vCard);
+    const addrResult = templateEngine.substitute(addrTemplate, vCard).unwrap();
     expect(addrResult).toContain('Königstraße 42');
     expect(addrResult).toContain('München');
     expect(addrResult).toContain('Deutschland');
@@ -319,12 +319,93 @@ describe('Test template engine with special characters', () => {
       '- 📧 ${emails[].value}\n' +
       '- 🏠 ${addresses[].`${tag}: ${value}`}';
 
-    const result = templateEngine.substitute(template, vCard);
+    const result = templateEngine.substitute(template, vCard).unwrap();
     expect(result).toContain('Müller, François');
     expect(result).toContain('Ångström GmbH');
     expect(result).toContain('Développeur');
     expect(result).toContain('françois@müller.example.com');
     expect(result).toContain('Königstraße 42');
     expect(result).toContain('München');
+  });
+});
+
+describe('TemplateEngine date pipe transforms', () => {
+  const templateEngine = new TemplateEngine();
+  // 2026-04-13 09:30 UTC (Monday)
+  const testDate = new Date('2026-04-13T09:30:00.000Z');
+
+  test('formats Date with yyyy for 4-digit year', () => {
+    const result = templateEngine.substitute('${dt|yyyy}', { dt: testDate }).unwrap();
+    expect(result).toBe('2026');
+  });
+
+  test('formats Date with MM for 2-digit month', () => {
+    const result = templateEngine.substitute('${dt|MM}', { dt: testDate }).unwrap();
+    expect(result).toBe('04');
+  });
+
+  test('formats Date with dd for 2-digit day', () => {
+    const result = templateEngine.substitute('${dt|dd}', { dt: testDate }).unwrap();
+    expect(result).toBe('13');
+  });
+
+  test('formats Date with HH:mm for time', () => {
+    const result = templateEngine.substitute('${dt|HH:mm}', { dt: testDate }).unwrap();
+    expect(result).toBe('09:30');
+  });
+
+  test('formats Date with EEEE for full weekday name', () => {
+    const result = templateEngine.substitute('${dt|EEEE}', { dt: testDate }).unwrap();
+    expect(result).toBe('Monday');
+  });
+
+  test('formats Date with compound format string', () => {
+    const result = templateEngine.substitute('${dt|yyyy-MM-dd HH:mm}', { dt: testDate }).unwrap();
+    expect(result).toBe('2026-04-13 09:30');
+  });
+
+  test('formats Date with yyyy/MM for directory path', () => {
+    const result = templateEngine.substitute('Calendar/${dt|yyyy}/${dt|MM}/', { dt: testDate }).unwrap();
+    expect(result).toBe('Calendar/2026/04/');
+  });
+
+  test('does not apply pipe to non-Date values', () => {
+    const result = templateEngine.substitute('${name|yyyy}', { name: 'Alice' }).unwrap();
+    // Falls back to full path lookup including |yyyy which returns undefined → empty
+    // Then tries pipe split: gets 'Alice' for 'name' but 'Alice' is not a Date → returns as-is
+    expect(result).toBe('Alice');
+  });
+
+  test('handles null Date gracefully', () => {
+    const result = templateEngine.substitute('${dt|yyyy}', { dt: null }).unwrap();
+    expect(result).toBe('');
+  });
+
+  test('pipe transform works alongside regular properties', () => {
+    const data = {
+      summary: 'Team Standup',
+      startDate: new Date('2026-04-13T09:30:00.000Z'),
+    };
+    const template = '${summary} on ${startDate|yyyy-MM-dd} (year: ${startDate|yyyy})';
+    const result = templateEngine.substitute(template, data).unwrap();
+    expect(result).toBe('Team Standup on 2026-04-13 (year: 2026)');
+  });
+
+  test('array separator syntax still works with pipe', () => {
+    const data = {
+      members: [{ name: 'Alice' }, { name: 'Bob' }],
+    };
+    const result = templateEngine.substitute('${members[].name|, }', data).unwrap();
+    expect(result).toBe('Alice, Bob');
+  });
+
+  test('pipe transform with default value fallback', () => {
+    const result = templateEngine.substitute('${dt|yyyy??unknown}', { dt: null }).unwrap();
+    expect(result).toBe('unknown');
+  });
+
+  test('formats Date with QQQ for quarter', () => {
+    const result = templateEngine.substitute('${dt|QQQ}', { dt: testDate }).unwrap();
+    expect(result).toBe('Q2');
   });
 });

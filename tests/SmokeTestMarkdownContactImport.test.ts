@@ -3,7 +3,7 @@ import { MockPimIntegrationContactImporterVCFMarkdown } from './MockContactImpor
 import { BackendTypeOutlook } from '../src/pimbackend/outlook/BackendTypeOutlook';
 import { BackendVariantOutlook15PlusDescriptor } from '../src/pimbackend/outlook/BackendVariantOutlook15Plus';
 import { BackendOutlookNativeExecutorCli } from '../src/pimbackend/outlook/BackendOutlookNativeExecutorCLI';
-import { TemplateEngine } from '../src/contacts/TemplateEngine';
+import { TemplateEngine } from '../src/templateEngine/TemplateEngine';
 import { TypedVCardImpl } from 'typed-vcard/src/TypedVCardImpl';
 import { describeWindows } from './testUtils';
 import * as fs from 'fs';
@@ -160,7 +160,7 @@ describeWindows('Smoke Test Special Characters Full Chain', () => {
 
     // Step 3: Apply template engine
     const templateEngine = new TemplateEngine();
-    const markdown = templateEngine.substitute(template, specialCard!);
+    const markdown = templateEngine.substitute(template, specialCard!).unwrap();
 
     // Verify the markdown output contains the special characters
     expect(markdown).toContain('Müller-Lüdenscheidt');
@@ -222,7 +222,7 @@ describeWindows('Smoke Test Special Characters Full Chain', () => {
 
     // Apply template and verify
     const templateEngine = new TemplateEngine();
-    const markdown = templateEngine.substitute(template, card);
+    const markdown = templateEngine.substitute(template, card).unwrap();
 
     expect(markdown).toContain('Müller-Lüdenscheidt');
     expect(markdown).toContain('François');

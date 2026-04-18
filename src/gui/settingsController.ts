@@ -1,5 +1,6 @@
 import { App, PluginSettingTab, Setting, TFile, TFolder } from 'obsidian';
 import { GenericTextSuggester } from './suggesters/genericTextSuggester';
+import { InputValidator } from './inputValidator';
 import {
   PimIntegrationSettings,
   PimIntegrationSettingsMgr,
@@ -10,6 +11,7 @@ import { Result } from 'oxide.ts';
 import { IBackendManager } from '../pimbackend/IBackendManager';
 import { IBackendType, IBackendTypeDescriptor } from '../pimbackend/IBackendType';
 import { IBackendVariant, IBackendVariantDescriptor } from '../pimbackend/IBackendVariant';
+import { TemplateEngine } from '../templateEngine/TemplateEngine';
 
 export class PimIntegrationSettingsController extends PluginSettingTab {
   private settingsMgr: PimIntegrationSettingsMgr;
@@ -62,11 +64,20 @@ export class PimIntegrationSettingsController extends PluginSettingTab {
     containerEl.empty();
     containerEl.createEl('h1', { text: 'Obsidian PIM Integration Settings' });
 
+    containerEl.createEl('h3', { text: 'Backend' });
     this.addBackendSetting();
     this.addBackendVariantSetting();
     this.addDotnetPathSetting();
+
+    containerEl.createEl('h3', { text: 'Contacts' });
     this.addContactFolderPathSetting();
     this.addContactTemplatePathSetting();
+
+    containerEl.createEl('h3', { text: 'Calendar' });
+    this.addCalendarFolderPathSetting();
+    this.addCalendarTemplatePathSetting();
+    this.addIncludePrivateCalendarEventsSetting();
+    this.addOutlookCalendarNameSetting();
   }
 
   // TODO: Provide generic setting modules for different setting types (List: Enum, file picker, folder picker, text, number, boolean)
@@ -271,6 +282,143 @@ export class PimIntegrationSettingsController extends PluginSettingTab {
           .filter((f: { path: string }) => f instanceof TFile && f.path.endsWith('.md'))
           .map((f: { path: any }) => f.path)
       );
+    });
+  }
+
+  private addCalendarFolderPathSetting() {
+    const setting = new Setting(this.containerEl);
+
+    setting.setName('Calendar Event Path');
+    setting.setDesc(
+      'Path where imported calendar event files are stored. ' +
+      'Supports ${startDate|format} placeholders. ' +
+      'End with .md to also specify the filename, e.g. Calendar/${startDate|yyyy-MM-dd} ${summary}.md'
+    );
+
+    setting.addText((text) => {
+      text
+        .setPlaceholder('Resources/Calendar')
+        .setValue(this.settings.calendarFolderPath)
+        .onChange(async (value) => {
+          this.settings.calendarFolderPath = value;
+          await this.settingsMgr.saveSettings();
+        });
+
+      new GenericTextSuggester(
+        this.app,
+        text.inputEl,
+        this.app.vault
+          .getAllLoadedFiles()
+          .filter((f: { path: string }) => f instanceof TFolder && f.path !== '/')
+          .map((f: { path: any }) => f.path)
+      );
+
+      new InputValidator(text.inputEl, (value) =>
+        PimIntegrationSettingsController.validateTemplatePath(value)
+      );
+    });
+  }
+
+  /**
+   * Validate a path containing ${property|format} placeholders.
+   * Returns an error message if the path would produce empty segments, null otherwise.
+   */
+  private static validateTemplatePath(path: string): string | null {
+    // In full-path mode the filename must contain at least one placeholder
+    // so that each event produces a unique file.
+    if (path.endsWith('.md')) {
+      const lastSlash = path.lastIndexOf('/');
+      const filename = lastSlash >= 0 ? path.slice(lastSlash + 1) : path;
+      if (!filename.includes('${')) {
+        return 'Filename must contain at least one variable (e.g. ${summary}) to produce unique files.';
+      }
+    }
+
+    if (!path.includes('${')) {
+      return null;
+    }
+    const engine = new TemplateEngine();
+    const sampleData: Record<string, Date> = {
+      startDate: new Date(2025, 0, 15, 10, 30),
+      endDate: new Date(2025, 0, 15, 11, 30),
+    };
+    try {
+      const resolvedResult = engine.substitute(path, sampleData);
+      if (resolvedResult.isErr()) {
+        return 'Path could not be resolved. Please check variables and their formatting.';
+      }
+      const resolved = resolvedResult.unwrap();
+      if (resolved.includes('//') || resolved.includes('${')) {
+        return 'Path could not be resolved. Please check variables and their formatting.';
+      }
+    } catch {
+      return 'Path could not be resolved. Please check variables and their formatting.';
+    }
+    return null;
+  }
+
+  private addCalendarTemplatePathSetting() {
+    const setting = new Setting(this.containerEl);
+
+    setting.setName('Calendar Event Template');
+    setting.setDesc('Template file for new calendar event notes');
+
+    setting.addText((text) => {
+      text
+        .setPlaceholder('Resources/Templates/CalendarEvent.md')
+        .setValue(this.settings.calendarTemplate)
+        .onChange(async (value) => {
+          this.settings.calendarTemplate = value;
+          await this.settingsMgr.saveSettings();
+        });
+
+      new GenericTextSuggester(
+        this.app,
+        text.inputEl,
+        this.app.vault
+          .getAllLoadedFiles()
+          .filter((f: { path: string }) => f instanceof TFile && f.path.endsWith('.md'))
+          .map((f: { path: any }) => f.path)
+      );
+    });
+  }
+
+  private addIncludePrivateCalendarEventsSetting() {
+    const setting = new Setting(this.containerEl);
+
+    setting.setName('Include Private Events');
+    setting.setDesc(
+      'When enabled, private/confidential calendar events are included in the import. ' +
+      'When disabled (default), only public events are imported.'
+    );
+
+    setting.addToggle((toggle) => {
+      toggle
+        .setValue(this.settings.includePrivateCalendarEvents)
+        .onChange(async (value) => {
+          this.settings.includePrivateCalendarEvents = value;
+          await this.settingsMgr.saveSettings();
+        });
+    });
+  }
+
+  private addOutlookCalendarNameSetting() {
+    const setting = new Setting(this.containerEl);
+
+    setting.setName('Outlook Calendar Folder');
+    setting.setDesc(
+      'Name of the Outlook calendar folder to export from. ' +
+      'Leave empty to use the default calendar.'
+    );
+
+    setting.addText((text) => {
+      text
+        .setPlaceholder('(default calendar)')
+        .setValue(this.settings.outlookCalendarName)
+        .onChange(async (value) => {
+          this.settings.outlookCalendarName = value;
+          await this.settingsMgr.saveSettings();
+        });
     });
   }
 

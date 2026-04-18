@@ -20,6 +20,7 @@
 
 # Test results
 /coverage/**
+/tests/test-output/**
 
 # Exclude sourcemaps
 *.map

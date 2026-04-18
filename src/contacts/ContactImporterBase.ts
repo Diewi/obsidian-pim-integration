@@ -3,8 +3,8 @@ import { Err, Ok, Result } from 'oxide.ts';
 import { vCardTs2_1 } from 'typed-vcard/src/vCardTs2_1';
 import { vCardTs3_0 } from 'typed-vcard/src/vCardTs3_0';
 import { vCardTs4_0 } from 'typed-vcard/src/vCardTs4_0';
-import { ITemplateEngine } from './ITemplateEngine';
-import { TemplateEngine } from './TemplateEngine';
+import { ITemplateEngine } from '../templateEngine/ITemplateEngine';
+import { TemplateEngine } from '../templateEngine/TemplateEngine';
 import { IContactTransformer } from './IContactTransformer';
 import { IContactBackend } from '../pimbackend/IContactBackend';
 import { TypedVCardImpl } from 'typed-vCard/src/TypedVCardImpl';
@@ -25,7 +25,7 @@ export abstract class PimIntegrationContactImporterBase
   }
 
   transformContacts(backend: IContactBackend): Promise<Result<string, string>> {
-    const importer = backend.createImporter();
+    const importer = backend.createContactImporter();
     if (importer.isErr()) {
       return Promise.resolve(Err(importer.unwrapErr()));
     }
@@ -79,7 +79,10 @@ export abstract class PimIntegrationContactImporterBase
 
   transformSingleContact(vCard: vCardTs2_1 | vCardTs3_0 | vCardTs4_0): Result<string, string> {
     const instance = this.templateEngine.substitute(this.targetTemplate, vCard);
-    return Ok(instance.trim());
+    if (instance.isErr()) {
+      return instance;
+    }
+    return Ok(instance.unwrap().trim());
   }
   abstract getContactRefName(vCard: vCardTs2_1 | vCardTs3_0 | vCardTs4_0): Result<string, string>;
 

@@ -41,9 +41,12 @@ namespace NativeBridge.OutlookComBridge.Commands
         var startDate = new DateTime(calendarParams!.StartDate, DateTimeKind.Utc);
         var endDate = new DateTime(calendarParams.EndDate, DateTimeKind.Utc);
         var includePrivate = calendarParams.IncludePrivate;
+        var calendarFolder = string.IsNullOrEmpty(calendarParams.CalendarFolder)
+          ? null
+          : calendarParams.CalendarFolder;
 
         var bridge = new OutlookCalendarBridge();
-        exportResult = bridge.ExportCalendarRange(startDate, endDate, includePrivate);
+        exportResult = bridge.ExportCalendarRange(startDate, endDate, includePrivate, calendarFolder);
       }
 
       var response = new CliResponse

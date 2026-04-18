@@ -29,25 +29,25 @@ namespace NativeBridge {
             "ZS5Db250YWN0RXhwb3J0UGFyYW1zSAASPgoPY2FsZW5kYXJfZXhwb3J0GAsg",
             "ASgLMiMubmF0aXZlX2JyaWRnZS5DYWxlbmRhckV4cG9ydFBhcmFtc0gAQggK",
             "BnBhcmFtcyIqChNDb250YWN0RXhwb3J0UGFyYW1zEhMKC2ZvbGRlcl9uYW1l",
-            "GAEgASgJIlUKFENhbGVuZGFyRXhwb3J0UGFyYW1zEhIKCnN0YXJ0X2RhdGUY",
+            "GAEgASgJIm4KFENhbGVuZGFyRXhwb3J0UGFyYW1zEhIKCnN0YXJ0X2RhdGUY",
             "ASABKAMSEAoIZW5kX2RhdGUYAiABKAMSFwoPaW5jbHVkZV9wcml2YXRlGAMg",
-            "ASgIIqMBCgxFeHBvcnRSZXN1bHQSDgoEZWNobxgBIAEoCUgAEioKBnZjYXJk",
-            "cxgCIAEoCzIYLm5hdGl2ZV9icmlkZ2UuVkNhcmREYXRhSAASFwoNbWVyZ2Vk",
-            "X3ZjYXJkcxgDIAEoCUgAEi8KCGNhbGVuZGFyGAQgASgLMhsubmF0aXZlX2Jy",
-            "aWRnZS5DYWxlbmRhckRhdGFIAEINCgtleHBvcnRfZGF0YSIbCglWQ2FyZERh",
-            "dGESDgoGdmNhcmRzGAEgAygJIjEKDENhbGVuZGFyRGF0YRIMCgRpY2FsGAEg",
-            "ASgJEhMKC2V2ZW50X2NvdW50GAIgASgFIr8BCgtDbGlSZXNwb25zZRIPCgdz",
-            "dWNjZXNzGAEgASgIEhUKDWVycm9yX21lc3NhZ2UYAiABKAkSGQoRZXJyb3Jf",
-            "c3RhY2tfdHJhY2UYAyABKAkSDwoHY29tbWFuZBgEIAEoCRIRCgl0aW1lc3Rh",
-            "bXAYBSABKAMSMgoNZXhwb3J0X3Jlc3VsdBgKIAEoCzIbLm5hdGl2ZV9icmlk",
-            "Z2UuRXhwb3J0UmVzdWx0EhUKDXNpbXBsZV9yZXN1bHQYFCABKAliBnByb3Rv",
-            "Mw=="));
+            "ASgIEhcKD2NhbGVuZGFyX2ZvbGRlchgEIAEoCSKjAQoMRXhwb3J0UmVzdWx0",
+            "Eg4KBGVjaG8YASABKAlIABIqCgZ2Y2FyZHMYAiABKAsyGC5uYXRpdmVfYnJp",
+            "ZGdlLlZDYXJkRGF0YUgAEhcKDW1lcmdlZF92Y2FyZHMYAyABKAlIABIvCghj",
+            "YWxlbmRhchgEIAEoCzIbLm5hdGl2ZV9icmlkZ2UuQ2FsZW5kYXJEYXRhSABC",
+            "DQoLZXhwb3J0X2RhdGEiGwoJVkNhcmREYXRhEg4KBnZjYXJkcxgBIAMoCSIx",
+            "CgxDYWxlbmRhckRhdGESDAoEaWNhbBgBIAEoCRITCgtldmVudF9jb3VudBgC",
+            "IAEoBSK/AQoLQ2xpUmVzcG9uc2USDwoHc3VjY2VzcxgBIAEoCBIVCg1lcnJv",
+            "cl9tZXNzYWdlGAIgASgJEhkKEWVycm9yX3N0YWNrX3RyYWNlGAMgASgJEg8K",
+            "B2NvbW1hbmQYBCABKAkSEQoJdGltZXN0YW1wGAUgASgDEjIKDWV4cG9ydF9y",
+            "ZXN1bHQYCiABKAsyGy5uYXRpdmVfYnJpZGdlLkV4cG9ydFJlc3VsdBIVCg1z",
+            "aW1wbGVfcmVzdWx0GBQgASgJYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::NativeBridge.CliRequest), global::NativeBridge.CliRequest.Parser, new[]{ "ContactExport", "CalendarExport" }, new[]{ "Params" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::NativeBridge.ContactExportParams), global::NativeBridge.ContactExportParams.Parser, new[]{ "FolderName" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::NativeBridge.CalendarExportParams), global::NativeBridge.CalendarExportParams.Parser, new[]{ "StartDate", "EndDate", "IncludePrivate" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::NativeBridge.CalendarExportParams), global::NativeBridge.CalendarExportParams.Parser, new[]{ "StartDate", "EndDate", "IncludePrivate", "CalendarFolder" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::NativeBridge.ExportResult), global::NativeBridge.ExportResult.Parser, new[]{ "Echo", "Vcards", "MergedVcards", "Calendar" }, new[]{ "ExportData" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::NativeBridge.VCardData), global::NativeBridge.VCardData.Parser, new[]{ "Vcards" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::NativeBridge.CalendarData), global::NativeBridge.CalendarData.Parser, new[]{ "Ical", "EventCount" }, null, null, null, null),
@@ -602,6 +602,7 @@ namespace NativeBridge {
       startDate_ = other.startDate_;
       endDate_ = other.endDate_;
       includePrivate_ = other.includePrivate_;
+      calendarFolder_ = other.calendarFolder_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -653,6 +654,21 @@ namespace NativeBridge {
       }
     }
 
+    /// <summary>Field number for the "calendar_folder" field.</summary>
+    public const int CalendarFolderFieldNumber = 4;
+    private string calendarFolder_ = "";
+    /// <summary>
+    /// Optional: specific calendar folder name (empty = default calendar)
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string CalendarFolder {
+      get { return calendarFolder_; }
+      set {
+        calendarFolder_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -671,6 +687,7 @@ namespace NativeBridge {
       if (StartDate != other.StartDate) return false;
       if (EndDate != other.EndDate) return false;
       if (IncludePrivate != other.IncludePrivate) return false;
+      if (CalendarFolder != other.CalendarFolder) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -681,6 +698,7 @@ namespace NativeBridge {
       if (StartDate != 0L) hash ^= StartDate.GetHashCode();
       if (EndDate != 0L) hash ^= EndDate.GetHashCode();
       if (IncludePrivate != false) hash ^= IncludePrivate.GetHashCode();
+      if (CalendarFolder.Length != 0) hash ^= CalendarFolder.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -711,6 +729,10 @@ namespace NativeBridge {
         output.WriteRawTag(24);
         output.WriteBool(IncludePrivate);
       }
+      if (CalendarFolder.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(CalendarFolder);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -733,6 +755,10 @@ namespace NativeBridge {
         output.WriteRawTag(24);
         output.WriteBool(IncludePrivate);
       }
+      if (CalendarFolder.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(CalendarFolder);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -751,6 +777,9 @@ namespace NativeBridge {
       }
       if (IncludePrivate != false) {
         size += 1 + 1;
+      }
+      if (CalendarFolder.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(CalendarFolder);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -772,6 +801,9 @@ namespace NativeBridge {
       }
       if (other.IncludePrivate != false) {
         IncludePrivate = other.IncludePrivate;
+      }
+      if (other.CalendarFolder.Length != 0) {
+        CalendarFolder = other.CalendarFolder;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -804,6 +836,10 @@ namespace NativeBridge {
             IncludePrivate = input.ReadBool();
             break;
           }
+          case 34: {
+            CalendarFolder = input.ReadString();
+            break;
+          }
         }
       }
     #endif
@@ -833,6 +869,10 @@ namespace NativeBridge {
           }
           case 24: {
             IncludePrivate = input.ReadBool();
+            break;
+          }
+          case 34: {
+            CalendarFolder = input.ReadString();
             break;
           }
         }
