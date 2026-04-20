@@ -14,13 +14,15 @@ export abstract class CalendarImporterBase implements ICalendarImporter {
   protected targetTemplate: string;
   protected vaultEventScanner: IVaultEventScanner | null = null;
   protected includePrivate: boolean = false;
+  protected excludeAllDay: boolean = true;
   private templateEngine: ITemplateEngine;
 
-  constructor(calendarDir: string, targetTemplate: string, includePrivate: boolean = false) {
+  constructor(calendarDir: string, targetTemplate: string, includePrivate: boolean = false, excludeAllDay: boolean = true) {
     this.calendarDir = calendarDir;
     this.targetTemplate = targetTemplate;
     this.templateEngine = new TemplateEngine();
     this.includePrivate = includePrivate;
+    this.excludeAllDay = excludeAllDay;
   }
 
   async transformCalendarEvents(
@@ -58,6 +60,11 @@ export abstract class CalendarImporterBase implements ICalendarImporter {
         const cls = e.classType.toUpperCase();
         return cls !== 'PRIVATE' && cls !== 'CONFIDENTIAL';
       });
+    }
+
+    // Filter out all-day events when the user opts to exclude them.
+    if (this.excludeAllDay) {
+      events = events.filter((e) => !e.isAllDay);
     }
 
     if (events.length === 0) {

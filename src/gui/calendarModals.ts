@@ -72,7 +72,8 @@ export class PimIntegrationImportCalendar {
         this.app,
         this.settings.getSettingValue('calendarFolderPath'),
         content,
-        this.settings.getSettingValue('includePrivateCalendarEvents')
+        this.settings.getSettingValue('includePrivateCalendarEvents'),
+        this.settings.getSettingValue('excludeAllDayEvents')
       );
 
       return importer.transformCalendarEvents(importerResult.unwrap(), startDate, endDate);

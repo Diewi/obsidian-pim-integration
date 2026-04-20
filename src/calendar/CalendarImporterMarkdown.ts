@@ -5,8 +5,8 @@ import { ObsidianVaultEventScanner } from './ObsidianVaultEventScanner';
 export class CalendarImporterMarkdown extends CalendarImporterBase {
   protected app: App;
 
-  constructor(app: App, calendarDir: string, targetTemplate: string, includePrivate: boolean = false) {
-    super(calendarDir, targetTemplate, includePrivate);
+  constructor(app: App, calendarDir: string, targetTemplate: string, includePrivate: boolean = false, excludeAllDay: boolean = true) {
+    super(calendarDir, targetTemplate, includePrivate, excludeAllDay);
     this.app = app;
     this.vaultEventScanner = new ObsidianVaultEventScanner(app);
   }

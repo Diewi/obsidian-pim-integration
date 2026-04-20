@@ -45,4 +45,6 @@ export type CalendarEvent = {
    * Used to filter private events when the user opts out of importing them.
    */
   classType: string;
+  /** True when the event uses a DATE-only start (no time component), i.e. an all-day event. */
+  isAllDay: boolean;
 };

@@ -24,6 +24,11 @@ export interface PimIntegrationSettings {
    */
   includePrivateCalendarEvents: boolean;
   /**
+   * Whether to exclude all-day (full-day) events from calendar import.
+   * Default: true (all-day events are excluded).
+   */
+  excludeAllDayEvents: boolean;
+  /**
    * Outlook calendar folder name for calendar export.
    * Empty string means the user's default calendar.
    */
@@ -43,6 +48,7 @@ export const DEFAULT_SETTINGS: PimIntegrationSettings = {
   calendarFolderPath: 'Resources/Calendar',
   calendarTemplate: 'Resources/Templates/CalendarEvent.md',
   includePrivateCalendarEvents: false,
+  excludeAllDayEvents: true,
   outlookCalendarName: '',
   dotnetPath: DEFAULT_DOTNET_PATH,
 };

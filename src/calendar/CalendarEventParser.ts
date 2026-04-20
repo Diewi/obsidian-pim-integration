@@ -70,6 +70,7 @@ export class CalendarEventParser {
       recurrenceId: CalendarEventParser.formatRecurrenceId(vevent),
       previousEventLink: '',
       classType: String(vevent.getFirstPropertyValue('class') ?? ''),
+      isAllDay: startDt?.isDate === true,
     };
   }
 

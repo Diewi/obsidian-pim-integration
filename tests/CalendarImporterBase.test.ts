@@ -196,6 +196,7 @@ describe('CalendarImporterBase', () => {
         recurrenceId: '',
         previousEventLink: '',
       classType: '',
+      isAllDay: false,
       };
 
       const result = importer.transformSingleEvent(event);
@@ -227,6 +228,7 @@ describe('CalendarImporterBase', () => {
         recurrenceId: '',
         previousEventLink: '',
         classType: '',
+      isAllDay: false,
       };
 
       const result = importer.transformSingleEvent(event);
@@ -444,6 +446,7 @@ describe('CalendarImporterBase', () => {
         recurrenceId: '',
         previousEventLink: '',
         classType: '',
+      isAllDay: false,
       };
 
       const result = importer.transformSingleEvent(event);
@@ -603,6 +606,7 @@ describe('resolvePreviousEventLink', () => {
       recurrenceId: '',
       previousEventLink: '',
       classType: '',
+      isAllDay: false,
     };
 
     importer.resolvePreviousEventLink(event);
@@ -629,6 +633,7 @@ describe('resolvePreviousEventLink', () => {
       recurrenceId: '',
       previousEventLink: '',
       classType: '',
+      isAllDay: false,
     };
 
     importer.resolvePreviousEventLink(event);
@@ -657,6 +662,7 @@ describe('resolvePreviousEventLink', () => {
       recurrenceId: '',
       previousEventLink: '',
       classType: '',
+      isAllDay: false,
     };
 
     importer.resolvePreviousEventLink(event);
@@ -682,6 +688,7 @@ describe('resolvePreviousEventLink', () => {
       recurrenceId: '',
       previousEventLink: '',
       classType: '',
+      isAllDay: false,
     };
 
     importer.resolvePreviousEventLink(event);
@@ -712,6 +719,7 @@ describe('resolvePreviousEventLink', () => {
       recurrenceId: '',
       previousEventLink: '',
       classType: '',
+      isAllDay: false,
     };
 
     importer.resolvePreviousEventLink(event);
@@ -741,6 +749,7 @@ describe('resolvePreviousEventLink', () => {
       recurrenceId: '',
       previousEventLink: '',
       classType: '',
+      isAllDay: false,
     };
 
     importer.resolvePreviousEventLink(event);

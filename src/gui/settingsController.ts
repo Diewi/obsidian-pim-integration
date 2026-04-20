@@ -81,6 +81,7 @@ export class PimIntegrationSettingsController extends PluginSettingTab {
       this.addCalendarFolderPathSetting();
       this.addCalendarTemplatePathSetting();
       this.addIncludePrivateCalendarEventsSetting();
+      this.addExcludeAllDayEventsSetting();
       this.addOutlookCalendarNameSetting();
     } catch (e) {
       containerEl.createEl('p', {
@@ -424,6 +425,25 @@ export class PimIntegrationSettingsController extends PluginSettingTab {
         .setValue(this.settings.includePrivateCalendarEvents)
         .onChange(async (value) => {
           this.settings.includePrivateCalendarEvents = value;
+          await this.settingsMgr.saveSettings();
+        });
+    });
+  }
+
+  private addExcludeAllDayEventsSetting() {
+    const setting = new Setting(this.containerEl);
+
+    setting.setName('Exclude All-Day Events');
+    setting.setDesc(
+      'When enabled (default), full-day / all-day events are skipped during import. ' +
+      'Disable to include them.'
+    );
+
+    setting.addToggle((toggle) => {
+      toggle
+        .setValue(this.settings.excludeAllDayEvents)
+        .onChange(async (value) => {
+          this.settings.excludeAllDayEvents = value;
           await this.settingsMgr.saveSettings();
         });
     });
