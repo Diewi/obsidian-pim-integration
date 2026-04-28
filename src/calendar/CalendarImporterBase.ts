@@ -159,13 +159,32 @@ export abstract class CalendarImporterBase implements ICalendarImporter {
   }
 
   /**
+   * Create a shallow copy of the event with string properties sanitized for
+   * use in file path templates.  Characters illegal in filenames (including
+   * `/`) are replaced so that substituted values cannot introduce phantom
+   * directory segments.
+   */
+  static sanitizeEventForPath(event: CalendarEvent): CalendarEvent {
+    return {
+      ...event,
+      summary: sanitizeFilename(event.summary ?? ''),
+      description: sanitizeFilename(event.description ?? ''),
+      location: sanitizeFilename(event.location ?? ''),
+      organizer: sanitizeFilename(event.organizer ?? ''),
+      status: sanitizeFilename(event.status ?? ''),
+      attendees: sanitizeFilename(event.attendees ?? ''),
+    };
+  }
+
+  /**
    * Resolve placeholders in the calendar directory path using event data.
    * Supports the same ${property} syntax as the template engine,
    * including pipe transforms like ${startDate|yyyy-MM-dd}.
    * Returns Err if the resolved path contains empty segments (e.g. from null dates).
    */
   resolveCalendarDir(event: CalendarEvent): Result<string, string> {
-    const resolvedResult = this.templateEngine.substitute(this.calendarDir, event);
+    const safeEvent = CalendarImporterBase.sanitizeEventForPath(event);
+    const resolvedResult = this.templateEngine.substitute(this.calendarDir, safeEvent);
     if (resolvedResult.isErr()) {
       return resolvedResult;
     }
@@ -298,7 +317,8 @@ export abstract class CalendarImporterBase implements ICalendarImporter {
    */
   resolveFilePath(event: CalendarEvent, fileExtension: string = '.md'): Result<string, string> {
     if (this.calendarDir.endsWith(fileExtension)) {
-      const resolvedResult = this.templateEngine.substitute(this.calendarDir, event);
+      const safeEvent = CalendarImporterBase.sanitizeEventForPath(event);
+      const resolvedResult = this.templateEngine.substitute(this.calendarDir, safeEvent);
       if (resolvedResult.isErr()) {
         return resolvedResult;
       }

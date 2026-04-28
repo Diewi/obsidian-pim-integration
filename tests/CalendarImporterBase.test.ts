@@ -1290,5 +1290,52 @@ describe('full-path mode with special characters in summary', () => {
     expect(result.isOk()).toBe(true);
     expect(importer.writtenFiles[0].filePath).toBe('Calendar/Meeting - 1_1 Alice - Bob.md');
   });
+
+  test('sanitizes slashes in summary so they do not create phantom directories', async () => {
+    const ICAL_SLASH_SUMMARY =
+      'BEGIN:VCALENDAR\r\n' +
+      'VERSION:2.0\r\n' +
+      'BEGIN:VEVENT\r\n' +
+      'DTSTART:20260416T140000Z\r\n' +
+      'DTEND:20260416T150000Z\r\n' +
+      'SUMMARY:Project A/B Review\r\n' +
+      'UID:slash-001@test\r\n' +
+      'END:VEVENT\r\n' +
+      'END:VCALENDAR\r\n';
+
+    const importer = new TestCalendarImporter(
+      'Calendar/${startDate|yyyy-MM-dd} ${summary}.md',
+      '# ${summary}'
+    );
+    const result = await importer.transformICalToTargetFormat(ICAL_SLASH_SUMMARY);
+
+    expect(result.isOk()).toBe(true);
+    expect(importer.writtenFiles).toHaveLength(1);
+    expect(importer.writtenFiles[0].filePath).toBe('Calendar/2026-04-16 Project A_B Review.md');
+    // Content should still contain the original unsanitized summary
+    expect(importer.writtenFiles[0].content).toContain('Project A/B Review');
+  });
+
+  test('sanitizes backslashes in summary', async () => {
+    const ICAL_BACKSLASH =
+      'BEGIN:VCALENDAR\r\n' +
+      'VERSION:2.0\r\n' +
+      'BEGIN:VEVENT\r\n' +
+      'DTSTART:20260416T140000Z\r\n' +
+      'DTEND:20260416T150000Z\r\n' +
+      'SUMMARY:Team X\\Y Sync\r\n' +
+      'UID:backslash-001@test\r\n' +
+      'END:VEVENT\r\n' +
+      'END:VCALENDAR\r\n';
+
+    const importer = new TestCalendarImporter(
+      'Calendar/${startDate|yyyy-MM-dd} ${summary}.md',
+      '# ${summary}'
+    );
+    const result = await importer.transformICalToTargetFormat(ICAL_BACKSLASH);
+
+    expect(result.isOk()).toBe(true);
+    expect(importer.writtenFiles[0].filePath).toBe('Calendar/2026-04-16 Team X_Y Sync.md');
+  });
 });
 
