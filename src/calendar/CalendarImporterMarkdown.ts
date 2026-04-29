@@ -14,4 +14,8 @@ export class CalendarImporterMarkdown extends CalendarImporterBase {
   async writeToFile(content: string, filePath: string): Promise<void> {
     await this.app.vault.adapter.write(filePath, content);
   }
+
+  async fileExists(filePath: string): Promise<boolean> {
+    return this.app.vault.adapter.exists(filePath);
+  }
 }

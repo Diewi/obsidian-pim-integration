@@ -15,6 +15,7 @@ export abstract class CalendarImporterBase implements ICalendarImporter {
   protected vaultEventScanner: IVaultEventScanner | null = null;
   protected includePrivate: boolean = false;
   protected excludeAllDay: boolean = true;
+  public forceOverwrite: boolean = false;
   private templateEngine: ITemplateEngine;
 
   constructor(calendarDir: string, targetTemplate: string, includePrivate: boolean = false, excludeAllDay: boolean = true) {
@@ -73,6 +74,7 @@ export abstract class CalendarImporterBase implements ICalendarImporter {
 
     const failedTransformations: CalendarEvent[] = [];
     let importedCount = 0;
+    let skippedCount = 0;
     for (const event of events) {
       this.resolvePreviousEventLink(event);
 
@@ -89,6 +91,13 @@ export abstract class CalendarImporterBase implements ICalendarImporter {
         failedTransformations.push(event);
         continue;
       }
+
+      // Skip events whose target file already exists unless force-overwrite is enabled.
+      if (!this.forceOverwrite && await this.fileExists(filePath.unwrap())) {
+        skippedCount++;
+        continue;
+      }
+
       try {
         await this.writeToFile(contentResult.unwrap(), filePath.unwrap());
         importedCount++;
@@ -99,7 +108,7 @@ export abstract class CalendarImporterBase implements ICalendarImporter {
     }
 
     if (failedTransformations.length === 0) {
-      return Ok(`${importedCount} calendar event(s) imported successfully.`);
+      return Ok(CalendarImporterBase.formatImportSummary(importedCount, skippedCount));
     } else {
       const failedSummaries = failedTransformations
         .map((e) => e.summary || '(no summary)')
@@ -108,9 +117,19 @@ export abstract class CalendarImporterBase implements ICalendarImporter {
         `[CalendarImporter] ${failedTransformations.length} event(s) failed: ${failedSummaries}`
       );
       return Err(
-        `${importedCount} event(s) imported, ${failedTransformations.length} failed: ${failedSummaries}`
+        CalendarImporterBase.formatImportSummary(importedCount, skippedCount) +
+        `, ${failedTransformations.length} failed: ${failedSummaries}`
       );
     }
+  }
+
+  static formatImportSummary(importedCount: number, skippedCount: number): string {
+    const parts: string[] = [];
+    parts.push(`${importedCount} event(s) imported`);
+    if (skippedCount > 0) {
+      parts.push(`${skippedCount} already imported`);
+    }
+    return parts.join(', ');
   }
 
   transformSingleEvent(event: CalendarEvent, template?: string): Result<string, string> {
@@ -369,4 +388,6 @@ export abstract class CalendarImporterBase implements ICalendarImporter {
   }
 
   abstract writeToFile(mdContent: string, filePath: string): Promise<void>;
+
+  abstract fileExists(filePath: string): Promise<boolean>;
 }

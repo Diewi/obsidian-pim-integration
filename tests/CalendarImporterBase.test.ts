@@ -10,6 +10,7 @@ import { TEST_ICALENDAR, TEST_ICALENDAR_WITH_ATTENDEES } from './fixtures/testCa
 /** Concrete subclass that captures writeToFile calls instead of writing to disk. */
 class TestCalendarImporter extends CalendarImporterBase {
   writtenFiles: { content: string; filePath: string }[] = [];
+  existingFiles: Set<string> = new Set();
 
   constructor(calendarDir: string, targetTemplate: string, scanner?: IVaultEventScanner, includePrivate: boolean = false) {
     super(calendarDir, targetTemplate, includePrivate);
@@ -20,6 +21,10 @@ class TestCalendarImporter extends CalendarImporterBase {
 
   async writeToFile(mdContent: string, filePath: string): Promise<void> {
     this.writtenFiles.push({ content: mdContent, filePath });
+  }
+
+  async fileExists(filePath: string): Promise<boolean> {
+    return this.existingFiles.has(filePath);
   }
 }
 
@@ -84,7 +89,7 @@ describe('CalendarImporterBase', () => {
       const importer = new TestCalendarImporter('calendar', SIMPLE_TEMPLATE);
       const result = await importer.transformICalToTargetFormat(TEST_ICALENDAR);
 
-      expect(result.unwrap()).toBe('3 calendar event(s) imported successfully.');
+      expect(result.unwrap()).toBe('3 event(s) imported');
     });
 
     test('returns Ok message when no events found', async () => {
@@ -1336,6 +1341,97 @@ describe('full-path mode with special characters in summary', () => {
 
     expect(result.isOk()).toBe(true);
     expect(importer.writtenFiles[0].filePath).toBe('Calendar/2026-04-16 Team X_Y Sync.md');
+  });
+});
+
+describe('skip already-imported events', () => {
+  const ICAL_TWO_EVENTS =
+    'BEGIN:VCALENDAR\r\n' +
+    'VERSION:2.0\r\n' +
+    'BEGIN:VEVENT\r\n' +
+    'DTSTART:20260416T090000Z\r\n' +
+    'DTEND:20260416T100000Z\r\n' +
+    'SUMMARY:Morning Standup\r\n' +
+    'UID:skip-001@test\r\n' +
+    'END:VEVENT\r\n' +
+    'BEGIN:VEVENT\r\n' +
+    'DTSTART:20260416T140000Z\r\n' +
+    'DTEND:20260416T150000Z\r\n' +
+    'SUMMARY:Afternoon Review\r\n' +
+    'UID:skip-002@test\r\n' +
+    'END:VEVENT\r\n' +
+    'END:VCALENDAR\r\n';
+
+  test('skips events whose file already exists', async () => {
+    const importer = new TestCalendarImporter(
+      'Calendar/${startDate|yyyy-MM-dd} ${summary}.md',
+      '# ${summary}'
+    );
+    importer.existingFiles.add('Calendar/2026-04-16 Morning Standup.md');
+
+    const result = await importer.transformICalToTargetFormat(ICAL_TWO_EVENTS);
+
+    expect(result.isOk()).toBe(true);
+    expect(result.unwrap()).toBe('1 event(s) imported, 1 already imported');
+    expect(importer.writtenFiles).toHaveLength(1);
+    expect(importer.writtenFiles[0].filePath).toBe('Calendar/2026-04-16 Afternoon Review.md');
+  });
+
+  test('skips all events when all files exist', async () => {
+    const importer = new TestCalendarImporter(
+      'Calendar/${startDate|yyyy-MM-dd} ${summary}.md',
+      '# ${summary}'
+    );
+    importer.existingFiles.add('Calendar/2026-04-16 Morning Standup.md');
+    importer.existingFiles.add('Calendar/2026-04-16 Afternoon Review.md');
+
+    const result = await importer.transformICalToTargetFormat(ICAL_TWO_EVENTS);
+
+    expect(result.isOk()).toBe(true);
+    expect(result.unwrap()).toBe('0 event(s) imported, 2 already imported');
+    expect(importer.writtenFiles).toHaveLength(0);
+  });
+
+  test('overwrites existing files when forceOverwrite is set', async () => {
+    const importer = new TestCalendarImporter(
+      'Calendar/${startDate|yyyy-MM-dd} ${summary}.md',
+      '# ${summary}'
+    );
+    importer.existingFiles.add('Calendar/2026-04-16 Morning Standup.md');
+    importer.forceOverwrite = true;
+
+    const result = await importer.transformICalToTargetFormat(ICAL_TWO_EVENTS);
+
+    expect(result.isOk()).toBe(true);
+    expect(result.unwrap()).toBe('2 event(s) imported');
+    expect(importer.writtenFiles).toHaveLength(2);
+  });
+
+  test('imports all events when none exist yet', async () => {
+    const importer = new TestCalendarImporter(
+      'Calendar/${startDate|yyyy-MM-dd} ${summary}.md',
+      '# ${summary}'
+    );
+
+    const result = await importer.transformICalToTargetFormat(ICAL_TWO_EVENTS);
+
+    expect(result.isOk()).toBe(true);
+    expect(result.unwrap()).toBe('2 event(s) imported');
+    expect(importer.writtenFiles).toHaveLength(2);
+  });
+});
+
+describe('formatImportSummary', () => {
+  test('shows only imported count when nothing skipped', () => {
+    expect(CalendarImporterBase.formatImportSummary(3, 0)).toBe('3 event(s) imported');
+  });
+
+  test('includes skipped count when events were skipped', () => {
+    expect(CalendarImporterBase.formatImportSummary(2, 1)).toBe('2 event(s) imported, 1 already imported');
+  });
+
+  test('shows zero imported with skipped count', () => {
+    expect(CalendarImporterBase.formatImportSummary(0, 5)).toBe('0 event(s) imported, 5 already imported');
   });
 });
 

@@ -30,10 +30,10 @@ export class PimIntegrationImportCalendar {
    * End boundary is exclusive (start of next day) so events on the following day
    * are not included.
    */
-  importCalendarForDate(date: Date): Promise<Result<string, string>> {
+  importCalendarForDate(date: Date, forceOverwrite: boolean = false): Promise<Result<string, string>> {
     const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
     const startOfNextDay = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1, 0, 0, 0);
-    return this.importCalendarRange(startOfDay, startOfNextDay);
+    return this.importCalendarRange(startOfDay, startOfNextDay, forceOverwrite);
   }
 
   /**
@@ -45,7 +45,8 @@ export class PimIntegrationImportCalendar {
 
   private importCalendarRange(
     startDate: Date,
-    endDate: Date
+    endDate: Date,
+    forceOverwrite: boolean = false
   ): Promise<Result<string, string>> {
     const templatePath = this.settings.getSettingValue('calendarTemplate');
     const templateFile = this.app.vault.getFileByPath(templatePath);
@@ -75,6 +76,7 @@ export class PimIntegrationImportCalendar {
         this.settings.getSettingValue('includePrivateCalendarEvents'),
         this.settings.getSettingValue('excludeAllDayEvents')
       );
+      importer.forceOverwrite = forceOverwrite;
 
       return importer.transformCalendarEvents(importerResult.unwrap(), startDate, endDate);
     });

@@ -19,6 +19,10 @@ class FileCalendarImporter extends CalendarImporterBase {
     fs.writeFileSync(absPath, mdContent, 'utf-8');
     console.log(`  Written: ${absPath}`);
   }
+
+  async fileExists(filePath: string): Promise<boolean> {
+    return fs.existsSync(path.resolve(filePath));
+  }
 }
 
 // ---- main ----

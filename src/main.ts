@@ -105,6 +105,16 @@ export default class PimIntegrationPlugin extends Plugin {
       },
     });
 
+    this.addCommand({
+      id: 'reimport-calendar-date',
+      name: 'Re-import Calendar Events for Date (overwrite existing)',
+      callback: async () => {
+        const date = await new DatePickerModal(this.app, new Date()).open();
+        if (!date) return;
+        this.importCalendarForDate(date, true);
+      },
+    });
+
     // This adds a settings tab so the user can configure various aspects of the plugin
     const settingsController = PimIntegrationSettingsController.create(
       this.app,
@@ -124,7 +134,7 @@ export default class PimIntegrationPlugin extends Plugin {
   onunload() {}
 
   // TOOD: Move close to calendar commands
-  private importCalendarForDate(date: Date) {
+  private importCalendarForDate(date: Date, forceOverwrite: boolean = false) {
     if (!this.pimBackendManager) {
       ObsidianUtils.logAndNotice('Error: Backend manager not initialized');
       return;
@@ -143,7 +153,7 @@ export default class PimIntegrationPlugin extends Plugin {
       backendRes.unwrap()
     );
     const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-    importer.importCalendarForDate(date).then((result) => {
+    importer.importCalendarForDate(date, forceOverwrite).then((result) => {
       match(result, {
         Ok: (message) => {
           ObsidianUtils.logAndNotice(`Calendar import for ${dateStr} completed: ${message}`);
