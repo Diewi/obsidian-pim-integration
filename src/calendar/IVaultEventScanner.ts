@@ -12,16 +12,18 @@ export interface IVaultEventScanner {
    * @param beforeDate - YYYY-MM-DD date string; only notes with an earlier meetingDate qualify.
    * @param baseDir - Directory prefix to scope the search (e.g. "Calendar/"). Only files
    *                  whose path starts with this prefix are considered.
-   * @returns The note's basename (without .md) if found, or null if no previous occurrence exists.
+   * @returns The note's vault-relative path (without .md extension) if found, or null if no
+   *          previous occurrence exists. The full path is needed for unambiguous wikilinks
+   *          when multiple notes share the same basename.
    */
   findPreviousOccurrenceNote(uid: string, beforeDate: string, baseDir: string): string | null;
 
   /**
-   * Read the full markdown content of a note identified by its basename.
+   * Read the full markdown content of a note identified by its vault-relative path.
    *
-   * @param basename - The note's basename (without .md extension).
+   * @param notePath - The note's vault-relative path (without .md extension).
    * @param baseDir - Directory prefix to scope the search.
    * @returns The note's content, or null if the note cannot be found or read.
    */
-  readNoteContent(basename: string, baseDir: string): Promise<string | null>;
+  readNoteContent(notePath: string, baseDir: string): Promise<string | null>;
 }

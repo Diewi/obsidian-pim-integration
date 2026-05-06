@@ -567,10 +567,10 @@ describe('CalendarImporterBase with MarkdownCalendarTemplate', () => {
 
 /** Mock implementation of IVaultEventScanner for testing. */
 class MockVaultEventScanner implements IVaultEventScanner {
-  private notes: { uid: string; meetingDate: string; basename: string; content?: string }[];
+  private notes: { uid: string; meetingDate: string; notePath: string; content?: string }[];
   lastBaseDir: string | undefined;
 
-  constructor(notes: { uid: string; meetingDate: string; basename: string; content?: string }[]) {
+  constructor(notes: { uid: string; meetingDate: string; notePath: string; content?: string }[]) {
     this.notes = notes;
   }
 
@@ -579,11 +579,11 @@ class MockVaultEventScanner implements IVaultEventScanner {
     const candidates = this.notes
       .filter((n) => n.uid === uid && n.meetingDate < beforeDate)
       .sort((a, b) => b.meetingDate.localeCompare(a.meetingDate));
-    return candidates.length > 0 ? candidates[0].basename : null;
+    return candidates.length > 0 ? candidates[0].notePath : null;
   }
 
-  async readNoteContent(basename: string, _baseDir: string): Promise<string | null> {
-    const note = this.notes.find((n) => n.basename === basename);
+  async readNoteContent(notePath: string, _baseDir: string): Promise<string | null> {
+    const note = this.notes.find((n) => n.notePath === notePath);
     return note?.content ?? null;
   }
 }
@@ -591,7 +591,7 @@ class MockVaultEventScanner implements IVaultEventScanner {
 describe('resolvePreviousEventLink', () => {
   test('resolves wikilink when scanner finds a previous note', () => {
     const scanner = new MockVaultEventScanner([
-      { uid: 'series-001', meetingDate: '2026-04-06', basename: '2026-04-06 Weekly Standup' },
+      { uid: 'series-001', meetingDate: '2026-04-06', notePath: 'calendar/2026-04-06 Weekly Standup' },
     ]);
     const importer = new TestCalendarImporter('calendar', '', scanner);
 
@@ -615,7 +615,7 @@ describe('resolvePreviousEventLink', () => {
     };
 
     importer.resolvePreviousEventLink(event);
-    expect(event.previousEventLink).toBe('[[2026-04-06 Weekly Standup]]');
+    expect(event.previousEventLink).toBe('[[calendar/2026-04-06 Weekly Standup]]');
   });
 
   test('returns empty string when no previous note exists', () => {
@@ -647,7 +647,7 @@ describe('resolvePreviousEventLink', () => {
 
   test('returns empty string when event has no recurrenceRule', () => {
     const scanner = new MockVaultEventScanner([
-      { uid: 'single-001', meetingDate: '2026-04-06', basename: '2026-04-06 Some Meeting' },
+      { uid: 'single-001', meetingDate: '2026-04-06', notePath: 'calendar/2026-04-06 Some Meeting' },
     ]);
     const importer = new TestCalendarImporter('calendar', '', scanner);
 
@@ -702,9 +702,9 @@ describe('resolvePreviousEventLink', () => {
 
   test('picks the most recent previous note when multiple exist', () => {
     const scanner = new MockVaultEventScanner([
-      { uid: 'series-001', meetingDate: '2026-03-23', basename: '2026-03-23 Weekly Standup' },
-      { uid: 'series-001', meetingDate: '2026-03-30', basename: '2026-03-30 Weekly Standup' },
-      { uid: 'series-001', meetingDate: '2026-04-06', basename: '2026-04-06 Weekly Standup' },
+      { uid: 'series-001', meetingDate: '2026-03-23', notePath: 'calendar/2026-03-23 Weekly Standup' },
+      { uid: 'series-001', meetingDate: '2026-03-30', notePath: 'calendar/2026-03-30 Weekly Standup' },
+      { uid: 'series-001', meetingDate: '2026-04-06', notePath: 'calendar/2026-04-06 Weekly Standup' },
     ]);
     const importer = new TestCalendarImporter('calendar', '', scanner);
 
@@ -728,13 +728,13 @@ describe('resolvePreviousEventLink', () => {
     };
 
     importer.resolvePreviousEventLink(event);
-    expect(event.previousEventLink).toBe('[[2026-04-06 Weekly Standup]]');
+    expect(event.previousEventLink).toBe('[[calendar/2026-04-06 Weekly Standup]]');
   });
 
   test('skips notes with same or later date', () => {
     const scanner = new MockVaultEventScanner([
-      { uid: 'series-001', meetingDate: '2026-04-13', basename: '2026-04-13 Weekly Standup' },
-      { uid: 'series-001', meetingDate: '2026-04-20', basename: '2026-04-20 Weekly Standup' },
+      { uid: 'series-001', meetingDate: '2026-04-13', notePath: 'calendar/2026-04-13 Weekly Standup' },
+      { uid: 'series-001', meetingDate: '2026-04-20', notePath: 'calendar/2026-04-20 Weekly Standup' },
     ]);
     const importer = new TestCalendarImporter('calendar', '', scanner);
 
@@ -778,7 +778,7 @@ describe('previousEventLink in full pipeline', () => {
 
   test('populates previousEventLink in template output when scanner finds match', async () => {
     const scanner = new MockVaultEventScanner([
-      { uid: 'series-001@test', meetingDate: '2026-04-06', basename: '2026-04-06 Weekly Standup' },
+      { uid: 'series-001@test', meetingDate: '2026-04-06', notePath: 'calendar/2026-04-06 Weekly Standup' },
     ]);
     const template = 'previous: "${previousEventLink}"\nSummary: ${summary}';
     const importer = new TestCalendarImporter('calendar', template, scanner);
@@ -787,7 +787,7 @@ describe('previousEventLink in full pipeline', () => {
 
     expect(importer.writtenFiles).toHaveLength(1);
     expect(importer.writtenFiles[0].content).toContain(
-      'previous: "[[2026-04-06 Weekly Standup]]"'
+      'previous: "[[calendar/2026-04-06 Weekly Standup]]"'
     );
   });
 
@@ -803,7 +803,7 @@ describe('previousEventLink in full pipeline', () => {
 
   test('does not populate previousEventLink for non-recurring events', async () => {
     const scanner = new MockVaultEventScanner([
-      { uid: 'test-event-001@outlookcombridge', meetingDate: '2026-04-03', basename: '2026-04-03 Team Standup' },
+      { uid: 'test-event-001@outlookcombridge', meetingDate: '2026-04-03', notePath: 'calendar/2026-04-03 Team Standup' },
     ]);
     const template = 'previous: "${previousEventLink}"\nSummary: ${summary}';
     const importer = new TestCalendarImporter('calendar', template, scanner);
@@ -822,7 +822,7 @@ describe('previousEventLink in full pipeline', () => {
     const REAL_TEMPLATE = fs.readFileSync(templatePath, 'utf-8');
 
     const scanner = new MockVaultEventScanner([
-      { uid: 'series-001@test', meetingDate: '2026-04-06', basename: '2026-04-06 Weekly Standup' },
+      { uid: 'series-001@test', meetingDate: '2026-04-06', notePath: 'calendar/2026-04-06 Weekly Standup' },
     ]);
     const importer = new TestCalendarImporter('calendar', REAL_TEMPLATE, scanner);
 
@@ -830,12 +830,12 @@ describe('previousEventLink in full pipeline', () => {
 
     const content = importer.writtenFiles[0].content;
     expect(content).toContain('uid: series-001@test');
-    expect(content).toContain('previous: "[[2026-04-06 Weekly Standup]]"');
+    expect(content).toContain('previous: "[[calendar/2026-04-06 Weekly Standup]]"');
   });
 
   test('passes calendarBaseDir to scanner for scoped search', async () => {
     const scanner = new MockVaultEventScanner([
-      { uid: 'series-001@test', meetingDate: '2026-04-06', basename: '2026-04-06 Weekly Standup' },
+      { uid: 'series-001@test', meetingDate: '2026-04-06', notePath: 'calendar/2026-04-06 Weekly Standup' },
     ]);
     const template = 'previous: "${previousEventLink}"';
     const importer = new TestCalendarImporter('Calendar/${startDate|yyyy-MM-dd}', template, scanner);
@@ -1009,7 +1009,7 @@ describe('carryForward in full pipeline', () => {
       {
         uid: 'series-001@test',
         meetingDate: '2026-04-06',
-        basename: '2026-04-06 Weekly Standup',
+        notePath: 'calendar/2026-04-06 Weekly Standup',
         content: PREVIOUS_NOTE_CONTENT,
       },
     ]);
@@ -1045,7 +1045,7 @@ describe('carryForward in full pipeline', () => {
       {
         uid: 'series-001@test',
         meetingDate: '2026-04-06',
-        basename: '2026-04-06 Weekly Standup',
+        notePath: 'calendar/2026-04-06 Weekly Standup',
         content: '### Only This\nSome content',
       },
     ]);
@@ -1076,7 +1076,7 @@ describe('carryForward in full pipeline', () => {
       {
         uid: 'series-001@test',
         meetingDate: '2026-04-06',
-        basename: '2026-04-06 Weekly Standup',
+        notePath: 'calendar/2026-04-06 Weekly Standup',
         content: prevContent,
       },
     ]);
@@ -1099,7 +1099,7 @@ describe('carryForward in full pipeline', () => {
       {
         uid: 'test-event-001@outlookcombridge',
         meetingDate: '2026-04-03',
-        basename: '2026-04-03 Team Standup',
+        notePath: 'calendar/2026-04-03 Team Standup',
         content: '### Round table %% carryForward %%\n- Old stuff',
       },
     ]);
@@ -1130,7 +1130,7 @@ describe('carryForward in full pipeline', () => {
       {
         uid: 'series-001@test',
         meetingDate: '2026-04-06',
-        basename: '2026-04-06 Weekly Standup',
+        notePath: 'calendar/2026-04-06 Weekly Standup',
         content: PREVIOUS_NOTE_CONTENT,
       },
     ]);

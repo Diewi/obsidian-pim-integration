@@ -25,7 +25,7 @@ export class ObsidianVaultEventScanner implements IVaultEventScanner {
     // import batch or building an index.
     const files = this.app.vault.getMarkdownFiles()
       .filter((f) => !baseDir || f.path.startsWith(baseDir));
-    let bestMatch: { basename: string; meetingDate: string } | null = null;
+    let bestMatch: { path: string; meetingDate: string } | null = null;
 
     for (const file of files) {
       const cache = this.app.metadataCache.getFileCache(file);
@@ -36,17 +36,18 @@ export class ObsidianVaultEventScanner implements IVaultEventScanner {
       if (!meetingDate || meetingDate >= beforeDate) continue;
 
       if (!bestMatch || meetingDate > bestMatch.meetingDate) {
-        bestMatch = { basename: file.basename, meetingDate };
+        bestMatch = { path: file.path.replace(/\.md$/, ''), meetingDate };
       }
     }
 
-    return bestMatch?.basename ?? null;
+    return bestMatch?.path ?? null;
   }
 
-  async readNoteContent(basename: string, baseDir: string): Promise<string | null> {
+  async readNoteContent(notePath: string, baseDir: string): Promise<string | null> {
+    const pathWithExt = notePath.endsWith('.md') ? notePath : notePath + '.md';
     const file = this.app.vault.getMarkdownFiles()
       .filter((f) => !baseDir || f.path.startsWith(baseDir))
-      .find((f) => f.basename === basename);
+      .find((f) => f.path === pathWithExt);
     if (!file) return null;
     return this.app.vault.read(file);
   }
