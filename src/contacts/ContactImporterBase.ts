@@ -8,6 +8,7 @@ import { TemplateEngine } from '../templateEngine/TemplateEngine';
 import { IContactTransformer } from './IContactTransformer';
 import { IContactBackend } from '../pimbackend/IContactBackend';
 import { TypedVCardImpl } from 'typed-vCard/src/TypedVCardImpl';
+import { sanitizeFilename } from '../utils/fileUtils';
 
 export abstract class PimIntegrationContactImporterBase
   implements PimIntegrationContactImporter, IContactTransformer
@@ -47,34 +48,61 @@ export abstract class PimIntegrationContactImporterBase
     return transformResult;
   }
 
-  transformContactsToTargetFormat(vCards: string): Promise<Result<string, string>> {
+  async transformContactsToTargetFormat(vCards: string): Promise<Result<string, string>> {
     console.log('Transforming contacts to target format.');
-    return new Promise((resolve, reject) => {
-      const typedVCards = new TypedVCardImpl(vCards);
-      // FIXME: The call to the correct getters must be dynamic based on the vCard version or the backend
-      let failedTransformations: vCardTs2_1[] = [];
-      for (const vCard of typedVCards.getVCardsV2_1()) {
-        const contentResult = this.transformSingleContact(vCard);
-        if (contentResult.isErr()) {
-          failedTransformations.push(vCard);
-          continue;
-        }
-
-        const content = contentResult.unwrap();
-        const contactRef = this.getContactRefName(vCard);
-        if (contactRef.isErr()) {
-          failedTransformations.push(vCard);
-          continue;
-        }
-
-        this.writeToFile(content, contactRef.unwrap());
+    const typedVCards = new TypedVCardImpl(vCards);
+    // FIXME: The call to the correct getters must be dynamic based on the vCard version or the backend
+    let failedTransformations: vCardTs2_1[] = [];
+    let writtenCount = 0;
+    let verifiedCount = 0;
+    for (const vCard of typedVCards.getVCardsV2_1()) {
+      const contentResult = this.transformSingleContact(vCard);
+      if (contentResult.isErr()) {
+        failedTransformations.push(vCard);
+        continue;
       }
-      if (failedTransformations.length == 0) {
-        resolve(Ok('All contacts transformed successfully.'));
-      } else {
-        resolve(Err(`Failed to transform ${failedTransformations.length} contacts.`));
+
+      const content = contentResult.unwrap();
+      const filePath = this.resolveFilePath(vCard);
+      if (filePath.isErr()) {
+        failedTransformations.push(vCard);
+        continue;
       }
-    });
+
+      try {
+        await this.writeToFile(content, filePath.unwrap());
+        writtenCount++;
+        if (await this.fileExists(filePath.unwrap())) {
+          verifiedCount++;
+        }
+      } catch (e) {
+        console.error(`[ContactImporter] Failed to write ${filePath.unwrap()}: ${e}`);
+        failedTransformations.push(vCard);
+      }
+    }
+
+    const summary = PimIntegrationContactImporterBase.formatImportSummary(
+      writtenCount, verifiedCount, failedTransformations.length
+    );
+    if (failedTransformations.length === 0) {
+      return Ok(summary);
+    } else {
+      return Err(summary);
+    }
+  }
+
+  static formatImportSummary(writtenCount: number, verifiedCount: number, failedCount: number): string {
+    const parts: string[] = [];
+    parts.push(`${writtenCount} contact(s) written`);
+    if (verifiedCount < writtenCount) {
+      parts.push(`${verifiedCount}/${writtenCount} verified on disk`);
+    } else {
+      parts.push(`all verified on disk`);
+    }
+    if (failedCount > 0) {
+      parts.push(`${failedCount} failed`);
+    }
+    return parts.join(', ');
   }
 
   transformSingleContact(vCard: vCardTs2_1 | vCardTs3_0 | vCardTs4_0): Result<string, string> {
@@ -84,7 +112,62 @@ export abstract class PimIntegrationContactImporterBase
     }
     return Ok(instance.unwrap().trim());
   }
+
+  /**
+   * Resolve the file path for a contact.
+   * If contactDir ends with `.md`, it is treated as a full-path template
+   * with variable substitution (e.g. `Contacts/${formattedName}.md`).
+   * Otherwise, the contact ref name is appended to the directory.
+   */
+  resolveFilePath(vCard: vCardTs2_1 | vCardTs3_0 | vCardTs4_0, fileExtension: string = '.md'): Result<string, string> {
+    if (this.contactDir.endsWith(fileExtension)) {
+      const safeVCard = PimIntegrationContactImporterBase.sanitizeVCardForPath(vCard);
+      const resolvedResult = this.templateEngine.substitute(this.contactDir, safeVCard);
+      if (resolvedResult.isErr()) {
+        return resolvedResult;
+      }
+      const resolved = resolvedResult.unwrap();
+      return Ok(PimIntegrationContactImporterBase.sanitizeFilePath(resolved));
+    }
+
+    const contactRef = this.getContactRefName(vCard);
+    if (contactRef.isErr()) {
+      return contactRef;
+    }
+    const safeName = sanitizeFilename(contactRef.unwrap());
+    return Ok(`${this.contactDir}/${safeName}${fileExtension}`);
+  }
+
+  /**
+   * Sanitize the filename portion of a resolved file path.
+   * Preserves `/` as directory separators but replaces illegal characters
+   * in the last path segment.
+   */
+  static sanitizeFilePath(filePath: string): string {
+    const lastSlash = filePath.lastIndexOf('/');
+    const filename = lastSlash >= 0 ? filePath.slice(lastSlash + 1) : filePath;
+    const dir = lastSlash >= 0 ? filePath.slice(0, lastSlash + 1) : '';
+    return dir + sanitizeFilename(filename);
+  }
+
+  /**
+   * Create a shallow copy of the vCard with string properties sanitized for
+   * use in file path templates. Characters illegal in filenames (including `/`)
+   * are replaced so that substituted values cannot introduce phantom directory segments.
+   */
+  static sanitizeVCardForPath(vCard: vCardTs2_1 | vCardTs3_0 | vCardTs4_0): Record<string, unknown> {
+    const result: Record<string, unknown> = { ...vCard };
+    for (const key of Object.keys(result)) {
+      if (typeof result[key] === 'string') {
+        result[key] = sanitizeFilename(result[key] as string);
+      }
+    }
+    return result;
+  }
+
   abstract getContactRefName(vCard: vCardTs2_1 | vCardTs3_0 | vCardTs4_0): Result<string, string>;
 
-  abstract writeToFile(mdContent: string, contactName: string): void;
+  abstract writeToFile(mdContent: string, filePath: string): Promise<void>;
+
+  abstract fileExists(filePath: string): Promise<boolean>;
 }

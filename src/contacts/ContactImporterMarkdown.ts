@@ -20,8 +20,15 @@ export class PimIntegrationContactImporterVCFMarkdown extends PimIntegrationCont
     return Ok(vCard.formattedName);
   }
 
-  writeToFile(content: string, contactName: string): void {
-    const filePath = `${this.contactDir}/${contactName}.md`;
-    this.app.vault.adapter.write(filePath, content);
+  async writeToFile(content: string, filePath: string): Promise<void> {
+    const dir = filePath.substring(0, filePath.lastIndexOf('/'));
+    if (dir && !(await this.app.vault.adapter.exists(dir))) {
+      await this.app.vault.adapter.mkdir(dir);
+    }
+    await this.app.vault.adapter.write(filePath, content);
+  }
+
+  async fileExists(filePath: string): Promise<boolean> {
+    return this.app.vault.adapter.exists(filePath);
   }
 }

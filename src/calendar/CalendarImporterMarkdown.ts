@@ -12,6 +12,10 @@ export class CalendarImporterMarkdown extends CalendarImporterBase {
   }
 
   async writeToFile(content: string, filePath: string): Promise<void> {
+    const dir = filePath.substring(0, filePath.lastIndexOf('/'));
+    if (dir && !(await this.app.vault.adapter.exists(dir))) {
+      await this.app.vault.adapter.mkdir(dir);
+    }
     await this.app.vault.adapter.write(filePath, content);
   }
 

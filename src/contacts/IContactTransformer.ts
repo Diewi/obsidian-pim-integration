@@ -8,5 +8,7 @@ export interface IContactTransformer {
 
   getContactRefName(vCard: vCardTs2_1 | vCardTs3_0 | vCardTs4_0): Result<string, string>;
 
-  writeToFile(mdContent: string, contactName: string): void;
+  writeToFile(mdContent: string, filePath: string): Promise<void>;
+
+  fileExists(filePath: string): Promise<boolean>;
 }
