@@ -288,8 +288,10 @@ export abstract class CalendarImporterBase implements ICalendarImporter {
   }
 
   static extractMarkedSections(content: string): string {
-    const MARKER = '%% carryForward %%';
-    return CalendarImporterBase.extractSections(content, (line) => line.includes(MARKER)).join('\n\n');
+    return CalendarImporterBase.extractSections(
+      content,
+      (line) => /%%\s*carryForward\s*%%/.test(line)
+    ).join('\n\n');
   }
 
   static extractSection(content: string, heading: string): string {

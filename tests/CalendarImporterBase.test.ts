@@ -971,6 +971,18 @@ describe('extractMarkedSections', () => {
     const result = CalendarImporterBase.extractMarkedSections(content);
     expect(result).toBe('### Forward %% carryForward %%\n- Item');
   });
+
+  test('matches marker without spaces between %% and carryForward', () => {
+    const content = '### Actions %%carryForward%%\n- Task A\n- Task B\n\n### Notes\nMore';
+    const result = CalendarImporterBase.extractMarkedSections(content);
+    expect(result).toBe('### Actions %%carryForward%%\n- Task A\n- Task B');
+  });
+
+  test('matches marker with mixed spacing', () => {
+    const content = '### Actions %%carryForward %%\n- Task A\n\n### Other %% carryForward%%\n- Task B';
+    const result = CalendarImporterBase.extractMarkedSections(content);
+    expect(result).toBe('### Actions %%carryForward %%\n- Task A\n\n### Other %% carryForward%%\n- Task B');
+  });
 });
 
 describe('carryForward in full pipeline', () => {
