@@ -50,7 +50,15 @@ export abstract class PimIntegrationContactImporterBase
 
   async transformContactsToTargetFormat(vCards: string): Promise<Result<string, string>> {
     console.log('Transforming contacts to target format.');
-    const typedVCards = new TypedVCardImpl(vCards);
+    if (vCards.trim().length === 0) {
+      return Ok(PimIntegrationContactImporterBase.formatImportSummary(0, 0, 0));
+    }
+    let typedVCards: TypedVCardImpl;
+    try {
+      typedVCards = new TypedVCardImpl(vCards);
+    } catch (e) {
+      return Err(`Failed to parse vCard data: ${e instanceof Error ? e.message : String(e)}`);
+    }
     // FIXME: The call to the correct getters must be dynamic based on the vCard version or the backend
     let failedTransformations: vCardTs2_1[] = [];
     let writtenCount = 0;

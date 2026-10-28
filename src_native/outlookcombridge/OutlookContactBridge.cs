@@ -126,50 +126,63 @@ namespace NativeBridge.OutlookComBridge
     /// <summary>
     /// Core contact export function. Returns individual vCard strings.
     /// Parsing into structured types is handled by typed-vcard on the TS side.
+    ///
+    /// Only <see cref="ContactItem"/> entries are exported. A contacts folder can also
+    /// hold contact groups (<see cref="DistListItem"/>, IPM.DistList), which Outlook
+    /// cannot save as vCard; those are skipped.
+    ///
+    /// Exceptions are not caught here. The CLI command turns them into a failed
+    /// response so that errors are not reported as an empty successful export.
     /// </summary>
     public NativeBridge.ExportResult ExportContactsCore()
     {
+      Items outlookItems;
+      Application outlookObj;
+      MAPIFolder folderContacts;
+
+      outlookObj = new Application();
+      folderContacts = outlookObj.Session.GetDefaultFolder(OlDefaultFolders.olFolderContacts);
+      outlookItems = folderContacts.Items;
+
+      var vcards = new List<string>();
+      var tempFile = Path.Combine(Path.GetTempPath(), "contact.vcf");
+      var skippedItems = 0;
+
       try
       {
-        Items outlookItems;
-        Application outlookObj;
-        MAPIFolder folderContacts;
-
-        outlookObj = new Application();
-        folderContacts = outlookObj.Session.GetDefaultFolder(OlDefaultFolders.olFolderContacts);
-        outlookItems = folderContacts.Items;
-
-        var vcards = new List<string>();
-        var tempFile = Path.Combine(Path.GetTempPath(), "contact.vcf");
-        var mergedVCard = new StringBuilder();
-
         for (int i = 0; i < outlookItems.Count; i++)
         {
-          ContactItem outlookContact = (ContactItem)outlookItems[i + 1];
+          if (outlookItems[i + 1] is not ContactItem outlookContact)
+          {
+            // Contact groups and other non-contact items cannot be exported as vCard.
+            skippedItems++;
+            continue;
+          }
 
           // Export vCard for this contact
           outlookContact.SaveAs(tempFile, 6);
           var vcard = NormalizeVCard(ReadVCardFile(tempFile));
 
           vcards.Add(vcard);
-          mergedVCard.Append(vcard);
         }
-
+      }
+      finally
+      {
         if (File.Exists(tempFile))
         {
           File.Delete(tempFile);
         }
+      }
 
-        return new ExportResult
-        {
-          Vcards = new VCardData { Vcards = { vcards } }
-        };
-      }
-      catch (System.Exception)
+      if (skippedItems > 0)
       {
-        // Return empty result on error - CLI layer will handle errors
-        return new ExportResult();
+        Console.Error.WriteLine($"Skipped {skippedItems} non-contact item(s) (e.g. contact groups) in the contacts folder.");
       }
+
+      return new ExportResult
+      {
+        Vcards = new VCardData { Vcards = { vcards } }
+      };
     }
 
     // ========================================================================

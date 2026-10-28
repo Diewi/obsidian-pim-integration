@@ -191,3 +191,34 @@ describe('ContactImporterBase transformContactsToTargetFormat with full-path mod
     expect(importer.writtenFiles[1].filePath).toBe('People/Bob Example.md');
   });
 });
+
+describe('ContactImporterBase transformContactsToTargetFormat with empty or invalid input', () => {
+  test('treats empty vCard data as zero contacts', async () => {
+    const importer = new TestContactImporter('', 'Contacts', '');
+
+    const result = await importer.transformContactsToTargetFormat('');
+
+    expect(result.isOk()).toBe(true);
+    expect(result.unwrap()).toBe('0 contact(s) written, all verified on disk');
+    expect(importer.writtenFiles).toHaveLength(0);
+  });
+
+  test('treats whitespace-only vCard data as zero contacts', async () => {
+    const importer = new TestContactImporter('', 'Contacts', '');
+
+    const result = await importer.transformContactsToTargetFormat('   ');
+
+    expect(result.isOk()).toBe(true);
+    expect(importer.writtenFiles).toHaveLength(0);
+  });
+
+  test('returns an error instead of throwing on unparsable vCard data', async () => {
+    const importer = new TestContactImporter('', 'Contacts', '');
+
+    const result = await importer.transformContactsToTargetFormat('not a vcard');
+
+    expect(result.isErr()).toBe(true);
+    expect(result.unwrapErr()).toContain('Failed to parse vCard data');
+    expect(importer.writtenFiles).toHaveLength(0);
+  });
+});

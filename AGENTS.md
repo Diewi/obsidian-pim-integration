@@ -90,10 +90,13 @@ Key facts:
   `DateTimeKind.Utc`. Day boundaries are built in **local time** in `calendarModals.ts`
   (`new Date(y, m, d)` to `new Date(y, m, d + 1)`, exclusive end). `DatePickerModal` also parses
   its input as local midnight.
-- **Contacts path.** C# calls `ContactItem.SaveAs(tmp, 6)` (vCard 2.1), re-reads the file
+- **Contacts path.** C# walks the default Contacts folder and skips anything that is not a
+  `ContactItem` (contact groups / `IPM.DistList` cannot be saved as vCard; the count goes to
+  stderr). Export exceptions become `Success = false` plus a stderr line, because the TS
+  executor only reads stderr on a non-zero exit. It calls `ContactItem.SaveAs(tmp, 6)` (vCard 2.1), re-reads the file
   detecting UTF-8 BOM / strict UTF-8 / Windows-1252, decodes QUOTED-PRINTABLE, strips the
   CHARSET/ENCODING params and normalizes to CRLF (`OutlookContactBridge.NormalizeVCard`). TS
-  feeds the merged text to `TypedVCardImpl` and iterates **only** `getVCardsV2_1()` (FIXME in
+  returns zero contacts for empty data, wraps `TypedVCardImpl` parse errors in `Err`, and iterates **only** `getVCardsV2_1()` (FIXME in
   `ContactImporterBase.ts`). File name is `formattedName` unless the contact folder setting
   ends with `.md` (then it is a path template).
 - **Calendar path.** C# uses Outlook's `CalendarSharing.SaveAsICal` with
@@ -140,7 +143,7 @@ Line endings are normalized to LF by default (`LineEnding.Unix`). The engine thr
 |---|---|---|
 | Install | `npm install` | Also links `typed-vCard` -> `../typed-vcard` (symlink in node_modules) |
 | Regenerate TS protobuf | `npm run proto:generate` | Needs `protobufjs-cli`; writes `src_generated/` (gitignored, so run after a fresh clone) |
-| Build C# bridge | `cd src_native/outlookcombridge && dotnet build OutlookComBridge.sln -c Release` | Outputs straight into `dist_outlookcombridge/` via `BuildOutputPath`. Runs `protobuf_bin/bin/protoc.exe` first, which is gitignored: drop a protoc release into `protobuf_bin/` (see its `readme.txt`). README still says `src_outlookcombridge` and `dotnet publish`; the csproj is the truth |
+| Build C# bridge | `cd src_native/outlookcombridge && dotnet publish OutlookComBridge.csproj -c Release` | `dotnet build` only writes to `build/outlookcombridge/Release/`; only `publish` updates `dist_outlookcombridge/` (`PublishDir`), which `npm run build` copies into `dist/outlookcombridge/`. A clean first build can fail with missing `CliResponse`/`ExportResult` because protoc generates the file after sources are globbed; just run it again. Runs `protobuf_bin/bin/protoc.exe` first, which is gitignored: drop a protoc release into `protobuf_bin/` (see its `readme.txt`). README still says `src_outlookcombridge` and `dotnet publish`; the csproj is the truth |
 | Build plugin | `npm run build` | `tsc -noEmit -skipLibCheck` then esbuild to `dist/` (minified in prod, inline sourcemap in `npm run dev` watch mode). Copies manifest, licenses, docs, `dist_outlookcombridge/*` into `dist/outlookcombridge/`, deps/runtimeconfig json into `dist/outlookcombridge/templates/`, and `electron-edge-js` lib/tools |
 | Deploy | copy `dist/*` to `<vault>/.obsidian/plugins/obsidian-pim-integration/` | Manual; the "Build + deploy" VS Code task template has an empty command |
 | TS tests | `npx jest` | `npm test` is watch mode. ~1 min |
@@ -169,7 +172,7 @@ Test facts:
   `MockPimIntegrationContactImporterVCFMarkdown`) and capture `writeToFile` calls; they never
   need the Obsidian API. Keep new logic in the `*Base` classes so it stays testable this way.
 
-State as of 2026-10-28 on this machine: `tsc` clean; 15 suites, 272 passed, 6 skipped,
+State as of 2026-10-28 on this machine: `tsc` clean; 15 suites, 275 passed, 6 skipped,
 2 failing:
 
 - `SmokeTestMarkdownContactImport` — timeout against real Outlook (environmental).
