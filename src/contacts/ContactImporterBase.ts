@@ -70,6 +70,7 @@ export abstract class PimIntegrationContactImporterBase
       const content = contentResult.unwrap();
       const filePath = this.resolveFilePath(vCard);
       if (filePath.isErr()) {
+        console.error(`[ContactImporter] Cannot resolve file path: ${filePath.unwrapErr()}`);
         failedTransformations.push(vCard);
         continue;
       }
@@ -131,8 +132,17 @@ export abstract class PimIntegrationContactImporterBase
       if (resolvedResult.isErr()) {
         return resolvedResult;
       }
-      const resolved = resolvedResult.unwrap();
-      return Ok(PimIntegrationContactImporterBase.sanitizeFilePath(resolved));
+      const resolved = PimIntegrationContactImporterBase.sanitizeFilePath(resolvedResult.unwrap());
+      // A placeholder that resolves to nothing (e.g. a stale `${formattedName}`, which typed-vcard
+      // now exposes as `${name.formatted}`) would write every contact to the same `<dir>/.md`.
+      const fileName = resolved.slice(resolved.lastIndexOf('/') + 1);
+      if (fileName.slice(0, -fileExtension.length).trim().length === 0) {
+        return Err(
+          `File path template '${this.contactDir}' resolved to an empty file name (${resolved}); ` +
+            'check that its placeholders exist, e.g. ${name.formatted}'
+        );
+      }
+      return Ok(resolved);
     }
 
     const contactRef = this.getContactRefName(vCard);

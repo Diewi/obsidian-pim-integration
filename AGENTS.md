@@ -200,7 +200,8 @@ State as of 2026-11-20 on this machine: `tsc` clean; 15 suites, 277 passed, 6 sk
   `timeZone`, `source`, `key`, `logo`, `sound`, `label`, ...) are arrays.
 - `ContactImporterBase.sanitizeVCardForPath` sanitizes every string in the card recursively
   (nested objects and arrays), so path templates like `${name.formatted}` or `${role[0]}`
-  cannot introduce directories.
+  cannot introduce directories. A path template whose file name resolves to nothing (e.g. a
+  stale `${formattedName}`) fails that contact instead of writing `<dir>/.md`.
 - The Obsidian API is imported from `'obsidian'` in most files and from `'obsidian/obsidian'`
   in a few; both work with the bundled typings.
 - Anything that touches `src_native/proto/native_bridge.proto` requires regenerating both sides

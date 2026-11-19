@@ -206,6 +206,18 @@ describe('ContactImporterBase transformContactsToTargetFormat with full-path mod
     expect(importer.writtenFiles[0].content).toBe('# Alice Test');
   });
 
+  test('fails instead of overwriting when a placeholder resolves to an empty file name', async () => {
+    // formattedName no longer exists in typed-vcard (it is name.formatted); a stale template
+    // must not write every contact to "People/.md".
+    const importer = new TestContactImporter('', 'People/${formattedName}.md', '# ${name.formatted}');
+
+    const result = await importer.transformContactsToTargetFormat(VCARD_DATA);
+
+    expect(result.isErr()).toBe(true);
+    expect(result.unwrapErr()).toContain('2 failed');
+    expect(importer.writtenFiles).toHaveLength(0);
+  });
+
   test('uses folder + name.formatted when contactDir has no .md extension', async () => {
     const importer = new TestContactImporter('', 'People', '# ${name.formatted}');
 
