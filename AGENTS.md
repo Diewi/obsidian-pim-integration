@@ -10,7 +10,8 @@ A desktop-only Obsidian plugin (`manifest.json` id `obsidian-pim-integration`) t
 **contacts** and **calendar events** from Microsoft Outlook into Markdown notes rendered from
 user templates. Windows only in practice: Outlook is reached through COM interop from a small
 .NET 8 console tool (`OutlookComBridge.exe`) that the plugin spawns. vCard parsing comes from the
-sibling repo `../typed-vcard` (see its own `Agent.md`).
+sibling repo `../typed-vcard` (see its own `AGENTS.md`), linked as `"typed-vcard": "file:../typed-vcard"`
+until it is published to npm.
 
 Status: early development, unreleased. No CI runs (`release.yml` sits at the repo root, not
 under `.github/workflows/`, and references `main.js` / `styles.css` that the build no longer
@@ -97,7 +98,7 @@ Key facts:
   detecting UTF-8 BOM / strict UTF-8 / Windows-1252, decodes QUOTED-PRINTABLE, strips the
   CHARSET/ENCODING params and normalizes to CRLF (`OutlookContactBridge.NormalizeVCard`). TS
   returns zero contacts for empty data, wraps `TypedVCardImpl` parse errors in `Err`, and iterates **only** `getVCardsV2_1()` (FIXME in
-  `ContactImporterBase.ts`). File name is `formattedName` unless the contact folder setting
+  `ContactImporterBase.ts`). File name is `name.formatted` (FN) unless the contact folder setting
   ends with `.md` (then it is a path template).
 - **Calendar path.** C# uses Outlook's `CalendarSharing.SaveAsICal` with
   `olFullDetails` and `IncludePrivateDetails`. Outlook returns whole recurring series
@@ -111,7 +112,7 @@ Key facts:
   note), substitutes, resolves the file path, skips existing files unless `forceOverwrite`
   (the "Re-import" command), writes.
 - **File paths.** Both importers support two modes for the folder setting: plain folder
-  (auto filename `YYYY-MM-DD Summary.md` / `formattedName.md`) or a full path template ending
+  (auto filename `YYYY-MM-DD Summary.md` / `<name.formatted>.md`) or a full path template ending
   in `.md` whose filename part must contain a `${...}` (validated live by `InputValidator` via
   `validateTemplatePath`). Illegal Windows filename chars `\ / : * ? " < > |` become `_`
   (`sanitizeFilename`); template values are sanitized before substitution so a `/` in a
@@ -141,7 +142,7 @@ Line endings are normalized to LF by default (`LineEnding.Unix`). The engine thr
 
 | Task | Command | Notes |
 |---|---|---|
-| Install | `npm install` | Also links `typed-vCard` -> `../typed-vcard` (symlink in node_modules) |
+| Install | `npm install` | Also links `typed-vcard` -> `../typed-vcard` (junction in node_modules). The plugin uses typed-vcard's compiled `dist/`: run `npm run build` in `../typed-vcard` after changing it |
 | Regenerate TS protobuf | `npm run proto:generate` | Needs `protobufjs-cli`; writes `src_generated/` (gitignored, so run after a fresh clone) |
 | Build C# bridge | `cd src_native/outlookcombridge && dotnet publish OutlookComBridge.csproj -c Release` | `dotnet build` only writes to `build/outlookcombridge/Release/`; only `publish` updates `dist_outlookcombridge/` (`PublishDir`), which `npm run build` copies into `dist/outlookcombridge/`. A clean first build can fail with missing `CliResponse`/`ExportResult` because protoc generates the file after sources are globbed; just run it again. Runs `protobuf_bin/bin/protoc.exe` first, which is gitignored: drop a protoc release into `protobuf_bin/` (see its `readme.txt`). README still says `src_outlookcombridge` and `dotnet publish`; the csproj is the truth |
 | Build plugin | `npm run build` | `tsc -noEmit -skipLibCheck` then esbuild to `dist/` (minified in prod, inline sourcemap in `npm run dev` watch mode). Copies manifest, licenses, docs, `dist_outlookcombridge/*` into `dist/outlookcombridge/`, deps/runtimeconfig json into `dist/outlookcombridge/templates/`, and `electron-edge-js` lib/tools |
@@ -172,7 +173,7 @@ Test facts:
   `MockPimIntegrationContactImporterVCFMarkdown`) and capture `writeToFile` calls; they never
   need the Obsidian API. Keep new logic in the `*Base` classes so it stays testable this way.
 
-State as of 2026-10-28 on this machine: `tsc` clean; 15 suites, 275 passed, 6 skipped,
+State as of 2026-11-20 on this machine: `tsc` clean; 15 suites, 277 passed, 6 skipped,
 2 failing:
 
 - `SmokeTestMarkdownContactImport` — timeout against real Outlook (environmental).
@@ -192,10 +193,14 @@ State as of 2026-10-28 on this machine: `tsc` clean; 15 suites, 275 passed, 6 sk
 - Interfaces are prefixed `I` (`IBackendType`, `ICalendarImporterBackend`). Descriptor classes
   (`BackendTypeOutlookDescriptor`) are the serializable handles; `createInstance()` builds the
   real object.
-- Import typed-vcard as `typed-vcard/src/<file>`; one file uses `typed-vCard/src/TypedVCardImpl`.
-  Both resolve on Windows only because the filesystem is case-insensitive. Prefer the lower-case
-  spelling and expect the package name mismatch (`typed-vCard` in `package.json`, `typed-vcard`
-  in its own manifest) to bite on Linux.
+- Import typed-vcard only from the package root: `import { TypedVCardImpl, vCardTs2_1 } from
+  'typed-vcard'`. Deep imports (`typed-vcard/src/...`) are blocked by the package's `exports`
+  (jest and esbuild honour it). Template-relevant API facts: the formatted name is
+  `name.formatted` (there is no `formattedName`), and repeatable properties (`note`, `role`,
+  `timeZone`, `source`, `key`, `logo`, `sound`, `label`, ...) are arrays.
+- `ContactImporterBase.sanitizeVCardForPath` sanitizes every string in the card recursively
+  (nested objects and arrays), so path templates like `${name.formatted}` or `${role[0]}`
+  cannot introduce directories.
 - The Obsidian API is imported from `'obsidian'` in most files and from `'obsidian/obsidian'`
   in a few; both work with the bundled typings.
 - Anything that touches `src_native/proto/native_bridge.proto` requires regenerating both sides

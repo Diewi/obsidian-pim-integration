@@ -75,8 +75,11 @@ into your vault and point the plugin at it — it is the quickest way to get sta
 ### Template data reference (quick)
 
 - Source: templates render against the parsed contact object produced by `typed-vcard`.
-- Typical top-level attributes available in templates: `name`, `formattedName`/`fullName`, `emails`,
-  `telephones`, `organization`, `title`, `addresses`, `uid`, `url`, `note`, `birthday`, `categories`.
+- Typical top-level attributes available in templates: `name` (with `name.formatted` for the
+  formatted full name), `emails`, `telephones`, `organization`, `title`, `addresses`, `uid`, `url`,
+  `note`, `birthdate`, `categories`. Repeatable properties such as `note`, `role` and `categories`
+  are lists: `${note}` joins all entries with commas, `${note[0]}` picks the first one.
+- The full attribute reference is `docs/ContactTemplateAttributes.md`.
 - Arrays are common: use indexed forms (`emails[0].value`) or array templates (`${emails[].`- ${value}`}`).
 - Default values: use the `??` operator, e.g. `${tag??Unknown}`.
 - Outlook binding: when using the Outlook backend prefer the conservative vCard 2.1-compatible fields
@@ -308,6 +311,11 @@ for a typical developer setup on Windows.
 npm install
 npm run build
 ```
+
+   Until `typed-vcard` is published, it is linked from the sibling checkout `../typed-vcard`
+   (`"typed-vcard": "file:../typed-vcard"`). Build it first (`npm install` there runs its build),
+   and run `npm run build` in `../typed-vcard` again after changing it: the plugin uses its
+   compiled `dist/`.
 
 2. Output
 

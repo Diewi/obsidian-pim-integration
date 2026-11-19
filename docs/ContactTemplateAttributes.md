@@ -37,17 +37,17 @@ exporter or backend implementation.
 | `title[]` (TITLE) | ✓ | ✓ | ✓ | Role/position text |
 | `addresses[]` (ADR) | ✓ | ✓ | ✓ | ADR exists in all; structured components more reliable in 3.0/4.0 |
 | `addresses` components (street, city, region, postalCode, country) | ~ | ✓ | ✓ | Components may be flattened in 2.1 exports |
-| `photo` / `logo` (PHOTO) | ✓ | ✓ | ✓ | Binary or URI-based photos; params differ across versions |
+| `photo[]` / `logo[]` (PHOTO / LOGO) | ✓ | ✓ | ✓ | Binary or URI-based photos; params differ across versions |
 | `uid` (UID) | ~ | ✓ | ✓ | UID optional in 2.1 exports but common in later versions |
 | `url[]` (URL) | ~ | ✓ | ✓ | URL field more common in 3.0/4.0 |
-| `note` (NOTE) | ✓ | ✓ | ✓ | Free-text note |
-| `birthday` (BDAY) | ~ | ✓ | ✓ | Format handling improved in later versions |
+| `note[]` (NOTE) | ✓ | ✓ | ✓ | Free-text notes (one entry per NOTE line) |
+| `birthdate` (BDAY) | ~ | ✓ | ✓ | Format handling improved in later versions |
 | `categories[]` (CATEGORIES) | ~ | ✓ | ✓ | Tagging / categories better-supported in 3.0/4.0 |
 | `geo` (GEO) | ~ | ✓ | ✓ | Geographic coordinates supported in later versions |
-| `key` (KEY) | ~ | ✓ | ✓ | Public key entries; limited in 2.1 exports |
-| `sound` (SOUND) | ~ | ✓ | ✓ | Pronunciation/sound data; rarely used in 2.1 |
+| `key[]` (KEY) | ~ | ✓ | ✓ | Public key entries; limited in 2.1 exports |
+| `sound[]` (SOUND) | ~ | ✓ | ✓ | Pronunciation/sound data; rarely used in 2.1 |
 | `revision` (REV) | ~ | ✓ | ✓ | Revision timestamp more consistently present in 3.0/4.0 |
-| `impp` / messaging (IMPP) | - | ✓ | ✓ | IMPP is introduced/standardized in 3.0+ |
+| `impp[]` / messaging (IMPP) | - | ✓ | ✓ | IMPP is introduced/standardized in 3.0+ |
 | `version` (vCard version string) | ✓ | ✓ | ✓ | Present to indicate the source vCard version |
 
 **Notes**
@@ -83,42 +83,44 @@ developer-focused reference intended to make template authoring quick and predic
 | `addresses[].fullAddress` | string | ADR (formatted) | Full formatted address string when provided | `Cresent moon drive, Albaney, New York, 12345, USA` |
 | `addresses[].street`, `addresses[].locality`, `addresses[].region`, `addresses[].postalCode`, `addresses[].country` | string | ADR components | Street / city / region / postal code / country components | `locality: New York` |
 | `addresses[].tag` | string | TYPE | Address tag/label (work/home) | `work` |
-| `birthday` | string / Date | BDAY | Birthday value (formats vary) | `1970-01-01` |
+| `birthdate` | Date / string | BDAY | `Date` when parsable; raw string for `--MMDD` and `VALUE=text` | `${birthdate|yyyy-MM-dd}` |
 | `categories[]` | array of string | CATEGORIES | Tags / categories | `['friend','colleague']` |
 | `emails[]` | array of `eMail` | EMAIL | Array of email entries (`value`, optional params/tags) | `[{value:"john@x.com",tag:"work"}]` |
 | `emails[].addressType` | `MailType` | EMAIL params | Email address type hint (internet/x400) | `internet` |
 | `emails[].tag` | string | TYPE / label | Label such as `work` / `home` | `work` |
 | `emails[].value` | string | EMAIL | Raw email address | `john@x.com` |
-| `gender` | `gender` | GENDER | Gender property with optional `sex` and `indentity` fields | `{sex:'M', indentity:'male'}` |
+| `gender` | `gender` | GENDER (4.0) | Gender property with optional `sex` and `identity` fields | `{sex:'M', identity:'male'}` |
 | `geo` | array of `GeoCoordinates` | GEO | Geographic coordinates (lat/lon) | `{latitude:..., longitude:...}` |
 | `geo.latitude` | number | GEO | Latitude coordinate for `geo` entries | `52.5200` |
 | `geo.longitude` | number | GEO | Longitude coordinate for `geo` entries | `13.4050` |
-| `impp[]` | array of `impp` | IMPP | Messaging / IM protocol URIs (URI value-type) | `[{value:'sip:alice@example.com'}]` |
-| `key` | `key` | KEY | Public key entries or key URIs | `key object` |
-| `key.keyUri` | `valueUri` | KEY | URI pointing to a public key or key material | `{uri:'https://example.com/key.pub'}` |
-| `logo` | `photo` | LOGO / PHOTO | Logo entry (occasionally used) | `photo object` |
-| `name` | object (`name` type) | N | Structured name object with components | `{ familyName, givenName, ... }` |
-| `name.formatted` / `formattedName` | string | FN | Formatted full name | `Doe, John` |
+| `impp[]` | array of `impp` | IMPP (3.0 / 4.0) | Messaging / IM protocol URIs (URI value-type) | `[{value:'sip:alice@example.com'}]` |
+| `key[]` | array of `key` | KEY | Public key entries: URI (`keyUri`) or inline material (`value`, `encoding`) | `${key[0].value}` |
+| `key[].keyUri` | `valueUri` | KEY | URI pointing to a public key | `{uri:'https://example.com/key.pub'}` |
+| `label[]` | array of `vCardProperty` | LABEL (2.1 / 3.0) | Formatted address labels; `tag` matches the TYPE of the address | ``${label[].`${tag}: ${value}`}`` |
+| `logo[]` | array of `photo` | LOGO | Logo entries (occasionally used) | `${logo[0].value}` |
+| `name` | object (`name` type) | N + FN | Structured name object with components; present if N or FN is present | `{ formatted, familyName, givenName, ... }` |
+| `name.formatted` | string | FN | Formatted full name (also the default file name) | `Doe, John` |
 | `name.familyName` | string | N (family) | Family / last name component | `Doe` |
 | `name.givenName` | string | N (given) | Given / first name component | `John` |
-| `note` | string | NOTE | Free-text notes | `Met at conference` |
+| `nickname[]` | array of string | NICKNAME (3.0 / 4.0) | Nicknames; comma lists are split | `${nickname[0]}` |
+| `note[]` | array of string | NOTE | Free-text notes; `${note}` joins them with commas, `${note[0]}` picks the first | `Met at conference` |
 | `organization[]` | array of `organization` | ORG | Organization entries; may include `organizationName` and unit list | `{organizationName:"IBM", organizationUnit:["Accounting"]}` |
 | `organization[].organizationName` | string | ORG | Company / organization name | `IBM` |
 | `photo[]` | array of `photo` | PHOTO | Photo or logo entries (binary or URI + mediaType) | `[{value:"...base64...", mediaType:{type:'image',subType:'jpeg'}}]` |
 | `photo[].encoding` | string | PHOTO | Optional encoding information for embedded binary photos | `b` |
 | `photo[].mediaType` | `MediaType` | PHOTO | Media type structure for photo/logo entries | `{type:'image', subType:'jpeg'}` |
-| `related[]` | array of `related` | RELATED | Related people entries (type + uri/text) | `[{relatedType:'friend', relatedText:'Jane'}]` |
-| `revision` | Date / string | REV | Revision timestamp | `2023-01-01T12:00:00Z` |
-| `role` | string | ROLE | Role / function string | `Manager` |
-| `sound` | `vCardProperty` | SOUND | Pronunciation/sound entries | `sound object` |
-| `source` | URL | SOURCE | Source URI for the vCard | `https://example.com/vcard.vcf` |
-| `telephones[]` | array of `telepone` | TEL | Phone number entries (may include `valueUri`, `device`, `capabilities`) | `[{value:"(905) 555-1234",tag:"work"}]` |
+| `related[]` | array of `related` | RELATED (4.0) | Related people entries (types + uri/text) | `[{relatedTypes:['friend'], relatedText:'Jane'}]` |
+| `revision` | Date | REV | Revision timestamp | `${revision|yyyy-MM-dd}` |
+| `role[]` | array of string | ROLE | Role / function strings; `${role}` joins them with commas | `Manager` |
+| `sound[]` | array of `vCardProperty` | SOUND | Pronunciation/sound entries | `${sound[0].value}` |
+| `source[]` | array of URL | SOURCE | Source URIs for the vCard | `https://example.com/vcard.vcf` |
+| `telephones[]` | array of `telephone` | TEL | Phone number entries (may include `valueUri`, `device`, `capabilities`) | `[{value:"(905) 555-1234",tag:"work"}]` |
 | `telephones[].capabilities` | `phoneCapabilities[]` | TEL | Capabilities flags (voice/video/text) | `['voice']` |
 | `telephones[].device` | `phoneDevice` | TEL | Device hint (tel/cell/fax/pager/textphone) | `cell` |
 | `telephones[].tag` | string | TYPE / label | Label such as `work` / `home` | `home` |
 | `telephones[].value` | string | TEL | Phone number string or URI | `(905) 555-1234` |
 | `telephones[].valueUri` | `valueUri` | TEL | Structured URI for telephone values (if present) | `{uri:'tel:+15551234'}` |
-| `timeZone` | string | TZ | Time zone identifier | `Europe/London` |
+| `timeZone[]` | array of string | TZ | Time zone identifiers or UTC offsets | `Europe/London` |
 | `title[]` | array | TITLE | Job title / role entries | `[{value:"Money Counter"}]` |
 | `uid` | string | UID | Contact unique id (if present) | `1234-...` |
 | `url[]` | array of `url` | URL | Homepage / web links | `[{value:"https://example.com"}]` |
