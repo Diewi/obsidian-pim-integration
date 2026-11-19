@@ -173,7 +173,7 @@ Test facts:
   `MockPimIntegrationContactImporterVCFMarkdown`) and capture `writeToFile` calls; they never
   need the Obsidian API. Keep new logic in the `*Base` classes so it stays testable this way.
 
-State as of 2026-11-20 on this machine: `tsc` clean; 15 suites, 277 passed, 6 skipped,
+State as of 2026-11-20 on this machine: `tsc` clean; 15 suites, 278 passed, 6 skipped,
 2 failing:
 
 - `SmokeTestMarkdownContactImport` — timeout against real Outlook (environmental).
