@@ -1,8 +1,6 @@
 import { App } from 'obsidian/obsidian';
 import { Result, Ok, Err } from 'oxide.ts/dist';
-import { vCardTs2_1 } from 'typed-vcard/src/vCardTs2_1';
-import { vCardTs3_0 } from 'typed-vcard/src/vCardTs3_0';
-import { vCardTs4_0 } from 'typed-vcard/src/vCardTs4_0';
+import { vCardTs2_1, vCardTs3_0, vCardTs4_0 } from 'typed-vcard';
 import { PimIntegrationContactImporterBase } from './ContactImporterBase';
 
 export class PimIntegrationContactImporterVCFMarkdown extends PimIntegrationContactImporterBase {
@@ -14,10 +12,11 @@ export class PimIntegrationContactImporterVCFMarkdown extends PimIntegrationCont
   }
 
   getContactRefName(vCard: vCardTs2_1 | vCardTs3_0 | vCardTs4_0): Result<string, string> {
-    if (!vCard.formattedName) {
+    const formattedName = vCard.name?.formatted;
+    if (!formattedName) {
       return Err('No formatted name found');
     }
-    return Ok(vCard.formattedName);
+    return Ok(formattedName);
   }
 
   async writeToFile(content: string, filePath: string): Promise<void> {

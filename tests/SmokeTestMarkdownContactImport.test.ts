@@ -4,7 +4,7 @@ import { BackendTypeOutlook } from '../src/pimbackend/outlook/BackendTypeOutlook
 import { BackendVariantOutlook15PlusDescriptor } from '../src/pimbackend/outlook/BackendVariantOutlook15Plus';
 import { BackendOutlookNativeExecutorCli } from '../src/pimbackend/outlook/BackendOutlookNativeExecutorCLI';
 import { TemplateEngine } from '../src/templateEngine/TemplateEngine';
-import { TypedVCardImpl } from 'typed-vcard/src/TypedVCardImpl';
+import { TypedVCardImpl } from 'typed-vcard';
 import { describeWindows } from './testUtils';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -155,7 +155,7 @@ describeWindows('Smoke Test Special Characters Full Chain', () => {
     const specialCard = v3Cards[0];
     expect(specialCard.name?.familyName).toContain('Müller-Lüdenscheidt');
     expect(specialCard.name?.givenName).toContain('François');
-    expect(specialCard.formattedName).toContain('Müller-Lüdenscheidt');
+    expect(specialCard.name?.formatted).toContain('Müller-Lüdenscheidt');
     console.log('✓ Step 2b: Special character vCard parsed correctly');
 
     // Step 3: Apply template engine
@@ -228,7 +228,7 @@ describeWindows('Smoke Test Special Characters Full Chain', () => {
     expect(markdown).toContain('François');
 
     // Write per-contact file (as the real importer would)
-    const contactName = card.formattedName || 'unknown';
+    const contactName = card.name?.formatted || 'unknown';
     const outputFile = path.join(outputDir, `${contactName}.md`);
     fs.writeFileSync(outputFile, markdown, 'utf-8');
 

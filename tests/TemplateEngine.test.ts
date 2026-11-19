@@ -1,8 +1,7 @@
 import { TemplateEngine } from '../src/templateEngine/TemplateEngine';
 import * as fs from 'fs';
 import * as path from 'path';
-import { vCardTs2_1 } from 'typed-vcard/src/vCardTs2_1';
-import { TypedVCardImpl } from 'typed-vcard/src/TypedVCardImpl';
+import { vCardTs2_1, TypedVCardImpl } from 'typed-vcard';
 
 describe('Test template engine', () => {
   const templateEngine = new TemplateEngine();

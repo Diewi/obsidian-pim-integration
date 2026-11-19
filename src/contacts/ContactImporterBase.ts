@@ -1,13 +1,10 @@
 import { PimIntegrationContactImporter } from './ContactImporter';
 import { Err, Ok, Result } from 'oxide.ts';
-import { vCardTs2_1 } from 'typed-vcard/src/vCardTs2_1';
-import { vCardTs3_0 } from 'typed-vcard/src/vCardTs3_0';
-import { vCardTs4_0 } from 'typed-vcard/src/vCardTs4_0';
+import { vCardTs2_1, vCardTs3_0, vCardTs4_0, TypedVCardImpl } from 'typed-vcard';
 import { ITemplateEngine } from '../templateEngine/ITemplateEngine';
 import { TemplateEngine } from '../templateEngine/TemplateEngine';
 import { IContactTransformer } from './IContactTransformer';
 import { IContactBackend } from '../pimbackend/IContactBackend';
-import { TypedVCardImpl } from 'typed-vCard/src/TypedVCardImpl';
 import { sanitizeFilename } from '../utils/fileUtils';
 
 export abstract class PimIntegrationContactImporterBase
@@ -124,7 +121,7 @@ export abstract class PimIntegrationContactImporterBase
   /**
    * Resolve the file path for a contact.
    * If contactDir ends with `.md`, it is treated as a full-path template
-   * with variable substitution (e.g. `Contacts/${formattedName}.md`).
+   * with variable substitution (e.g. `Contacts/${name.formatted}.md`).
    * Otherwise, the contact ref name is appended to the directory.
    */
   resolveFilePath(vCard: vCardTs2_1 | vCardTs3_0 | vCardTs4_0, fileExtension: string = '.md'): Result<string, string> {
@@ -159,18 +156,34 @@ export abstract class PimIntegrationContactImporterBase
   }
 
   /**
-   * Create a shallow copy of the vCard with string properties sanitized for
-   * use in file path templates. Characters illegal in filenames (including `/`)
-   * are replaced so that substituted values cannot introduce phantom directory segments.
+   * Create a copy of the vCard with all string values sanitized for use in file path
+   * templates, including nested ones (`name.formatted`) and list entries (`role[0]`,
+   * `organization[0].value`). Characters illegal in filenames (including `/`) are replaced so
+   * that substituted values cannot introduce phantom directory segments. Non-plain objects
+   * (`Date`, `URL`, the raw `vcf` card) are kept as they are.
    */
   static sanitizeVCardForPath(vCard: vCardTs2_1 | vCardTs3_0 | vCardTs4_0): Record<string, unknown> {
-    const result: Record<string, unknown> = { ...vCard };
-    for (const key of Object.keys(result)) {
-      if (typeof result[key] === 'string') {
-        result[key] = sanitizeFilename(result[key] as string);
-      }
+    return PimIntegrationContactImporterBase.sanitizeValueForPath({ ...vCard }) as Record<
+      string,
+      unknown
+    >;
+  }
+
+  private static sanitizeValueForPath(value: unknown): unknown {
+    if (typeof value === 'string') {
+      return sanitizeFilename(value);
     }
-    return result;
+    if (Array.isArray(value)) {
+      return value.map((v) => PimIntegrationContactImporterBase.sanitizeValueForPath(v));
+    }
+    if (value !== null && typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype) {
+      const result: Record<string, unknown> = {};
+      for (const [key, v] of Object.entries(value)) {
+        result[key] = PimIntegrationContactImporterBase.sanitizeValueForPath(v);
+      }
+      return result;
+    }
+    return value;
   }
 
   abstract getContactRefName(vCard: vCardTs2_1 | vCardTs3_0 | vCardTs4_0): Result<string, string>;

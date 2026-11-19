@@ -1,7 +1,5 @@
 import { PimIntegrationContactImporterBase } from '../src/contacts/ContactImporterBase';
-import { vCardTs2_1 } from 'typed-vcard/src/vCardTs2_1';
-import { vCardTs3_0 } from 'typed-vcard/src/vCardTs3_0';
-import { vCardTs4_0 } from 'typed-vcard/src/vCardTs4_0';
+import { vCardTs2_1, vCardTs3_0, vCardTs4_0 } from 'typed-vcard';
 import { Ok, Err, Result } from 'oxide.ts';
 
 /** Concrete subclass that captures writeToFile calls instead of writing to disk. */
@@ -14,10 +12,11 @@ class TestContactImporter extends PimIntegrationContactImporterBase {
   }
 
   getContactRefName(vCard: vCardTs2_1 | vCardTs3_0 | vCardTs4_0): Result<string, string> {
-    if (!vCard.formattedName) {
+    const formattedName = vCard.name?.formatted;
+    if (!formattedName) {
       return Err('No formatted name found');
     }
-    return Ok(vCard.formattedName);
+    return Ok(formattedName);
   }
 
   async writeToFile(content: string, filePath: string): Promise<void> {
@@ -31,15 +30,17 @@ class TestContactImporter extends PimIntegrationContactImporterBase {
 }
 
 describe('ContactImporterBase resolveFilePath', () => {
-  const makeVCard = (props: Partial<vCardTs2_1>): vCardTs2_1 => ({
-    formattedName: 'John Doe',
-    ...props,
-  } as vCardTs2_1);
+  // typed-vcard exposes FN as name.formatted (name exists whenever N or FN is present).
+  const makeVCard = (formatted: string | undefined, props: Partial<vCardTs2_1> = {}): vCardTs2_1 =>
+    ({
+      name: formatted === undefined ? undefined : { params: {}, value: [], formatted },
+      ...props,
+    }) as vCardTs2_1;
 
   describe('folder-only mode (contactDir without .md extension)', () => {
-    test('appends sanitized formattedName with .md extension', () => {
+    test('appends sanitized name.formatted with .md extension', () => {
       const importer = new TestContactImporter('', 'Resources/Contacts', '');
-      const vCard = makeVCard({ formattedName: 'Alice Smith' });
+      const vCard = makeVCard('Alice Smith');
 
       const result = importer.resolveFilePath(vCard);
 
@@ -47,9 +48,9 @@ describe('ContactImporterBase resolveFilePath', () => {
       expect(result.unwrap()).toBe('Resources/Contacts/Alice Smith.md');
     });
 
-    test('sanitizes illegal characters in formattedName', () => {
+    test('sanitizes illegal characters in name.formatted', () => {
       const importer = new TestContactImporter('', 'Contacts', '');
-      const vCard = makeVCard({ formattedName: 'Dr. Smith: MD/PhD' });
+      const vCard = makeVCard('Dr. Smith: MD/PhD');
 
       const result = importer.resolveFilePath(vCard);
 
@@ -57,9 +58,9 @@ describe('ContactImporterBase resolveFilePath', () => {
       expect(result.unwrap()).toBe('Contacts/Dr. Smith_ MD_PhD.md');
     });
 
-    test('returns Err when formattedName is missing', () => {
+    test('returns Err when name.formatted is missing', () => {
       const importer = new TestContactImporter('', 'Contacts', '');
-      const vCard = makeVCard({ formattedName: undefined });
+      const vCard = makeVCard(undefined);
 
       const result = importer.resolveFilePath(vCard);
 
@@ -68,9 +69,9 @@ describe('ContactImporterBase resolveFilePath', () => {
   });
 
   describe('full-path mode (contactDir ending with .md)', () => {
-    test('resolves template with formattedName', () => {
-      const importer = new TestContactImporter('', 'Contacts/${formattedName}.md', '');
-      const vCard = makeVCard({ formattedName: 'Bob Builder' });
+    test('resolves template with name.formatted', () => {
+      const importer = new TestContactImporter('', 'Contacts/${name.formatted}.md', '');
+      const vCard = makeVCard('Bob Builder');
 
       const result = importer.resolveFilePath(vCard);
 
@@ -78,9 +79,9 @@ describe('ContactImporterBase resolveFilePath', () => {
       expect(result.unwrap()).toBe('Contacts/Bob Builder.md');
     });
 
-    test('resolves template with organization', () => {
-      const importer = new TestContactImporter('', 'Contacts/${formattedName} (${role}).md', '');
-      const vCard = makeVCard({ formattedName: 'Alice Smith', role: 'Engineer' });
+    test('resolves template with role (a list since typed-vcard returns repeatable properties as lists)', () => {
+      const importer = new TestContactImporter('', 'Contacts/${name.formatted} (${role}).md', '');
+      const vCard = makeVCard('Alice Smith', { role: ['Engineer'] });
 
       const result = importer.resolveFilePath(vCard);
 
@@ -89,8 +90,8 @@ describe('ContactImporterBase resolveFilePath', () => {
     });
 
     test('sanitizes illegal characters in resolved filename', () => {
-      const importer = new TestContactImporter('', 'Contacts/${formattedName}.md', '');
-      const vCard = makeVCard({ formattedName: 'Dr. Smith: MD' });
+      const importer = new TestContactImporter('', 'Contacts/${name.formatted}.md', '');
+      const vCard = makeVCard('Dr. Smith: MD');
 
       const result = importer.resolveFilePath(vCard);
 
@@ -99,8 +100,8 @@ describe('ContactImporterBase resolveFilePath', () => {
     });
 
     test('preserves directory separators in template', () => {
-      const importer = new TestContactImporter('', 'Resources/Contacts/${formattedName}.md', '');
-      const vCard = makeVCard({ formattedName: 'John Doe' });
+      const importer = new TestContactImporter('', 'Resources/Contacts/${name.formatted}.md', '');
+      const vCard = makeVCard('John Doe');
 
       const result = importer.resolveFilePath(vCard);
 
@@ -108,9 +109,9 @@ describe('ContactImporterBase resolveFilePath', () => {
       expect(result.unwrap()).toBe('Resources/Contacts/John Doe.md');
     });
 
-    test('handles slash in formattedName without creating phantom directories', () => {
-      const importer = new TestContactImporter('', 'Contacts/${formattedName}.md', '');
-      const vCard = makeVCard({ formattedName: 'Smith A/B' });
+    test('handles slash in name.formatted without creating phantom directories', () => {
+      const importer = new TestContactImporter('', 'Contacts/${name.formatted}.md', '');
+      const vCard = makeVCard('Smith A/B');
 
       const result = importer.resolveFilePath(vCard);
 
@@ -119,15 +120,47 @@ describe('ContactImporterBase resolveFilePath', () => {
       expect(result.unwrap()).toBe('Contacts/Smith A_B.md');
     });
 
+    test('sanitizes nested and list values used in a directory segment', () => {
+      // Values substituted into a directory segment must not add directories either.
+      const importer = new TestContactImporter(
+        '',
+        'Contacts/${organization[0].value}/${role[0]} - ${name.formatted}.md',
+        ''
+      );
+      const vCard = makeVCard('Jane Roe', {
+        role: ['QA/Test'],
+        organization: [{ params: {}, value: 'R/D Corp', organizationName: 'R/D Corp' }],
+      });
+
+      const result = importer.resolveFilePath(vCard);
+
+      expect(result.isOk()).toBe(true);
+      expect(result.unwrap()).toBe('Contacts/R_D Corp/QA_Test - Jane Roe.md');
+    });
+
     test('resolves empty placeholder to empty string', () => {
-      const importer = new TestContactImporter('', 'Contacts/${formattedName} - ${role}.md', '');
-      const vCard = makeVCard({ formattedName: 'John Doe', role: undefined });
+      const importer = new TestContactImporter('', 'Contacts/${name.formatted} - ${role}.md', '');
+      const vCard = makeVCard('John Doe', { role: undefined });
 
       const result = importer.resolveFilePath(vCard);
 
       expect(result.isOk()).toBe(true);
       expect(result.unwrap()).toBe('Contacts/John Doe - .md');
     });
+  });
+});
+
+describe('ContactImporterBase sanitizeVCardForPath', () => {
+  test('keeps Date and URL values untouched', () => {
+    const revision = new Date(2020, 0, 1);
+    const source = [new URL('http://example.com/a/b.vcf')];
+    const sanitized = PimIntegrationContactImporterBase.sanitizeVCardForPath({
+      revision,
+      source,
+    } as vCardTs2_1);
+
+    expect(sanitized.revision).toBe(revision);
+    expect((sanitized.source as URL[])[0]).toBe(source[0]);
   });
 });
 
@@ -162,11 +195,7 @@ describe('ContactImporterBase transformContactsToTargetFormat with full-path mod
     'END:VCARD\r\n';
 
   test('uses template path for file output', async () => {
-    const importer = new TestContactImporter(
-      '',
-      'People/${formattedName}.md',
-      '# ${formattedName}'
-    );
+    const importer = new TestContactImporter('', 'People/${name.formatted}.md', '# ${name.formatted}');
 
     const result = await importer.transformContactsToTargetFormat(VCARD_DATA);
 
@@ -174,14 +203,11 @@ describe('ContactImporterBase transformContactsToTargetFormat with full-path mod
     expect(importer.writtenFiles).toHaveLength(2);
     expect(importer.writtenFiles[0].filePath).toBe('People/Alice Test.md');
     expect(importer.writtenFiles[1].filePath).toBe('People/Bob Example.md');
+    expect(importer.writtenFiles[0].content).toBe('# Alice Test');
   });
 
-  test('uses folder + formattedName when contactDir has no .md extension', async () => {
-    const importer = new TestContactImporter(
-      '',
-      'People',
-      '# ${formattedName}'
-    );
+  test('uses folder + name.formatted when contactDir has no .md extension', async () => {
+    const importer = new TestContactImporter('', 'People', '# ${name.formatted}');
 
     const result = await importer.transformContactsToTargetFormat(VCARD_DATA);
 
