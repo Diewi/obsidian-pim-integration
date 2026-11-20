@@ -27,7 +27,7 @@
 		"builtin-modules": "^5.5.0",
 		"date-fns": "^4.4.0",
 		"electron-edge-js": "^38.0.0",
-		"esbuild": "^0.25.4",
+		"esbuild": "^0.28.2",
 		"esbuild-plugin-copy": "^2.1.1",
 		"fp-ts": "^2.16.11",
 		"ical.js": "^2.2.1",
