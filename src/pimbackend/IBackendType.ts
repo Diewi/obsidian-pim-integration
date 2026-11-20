@@ -1,4 +1,4 @@
-import { Result } from 'oxide.ts/dist';
+import { Result } from 'oxide.ts';
 import { IContactImporterBackend } from '../contacts/IContactImporterBackend';
 import { IBackendVariant, IBackendVariantDescriptor } from './IBackendVariant';
 

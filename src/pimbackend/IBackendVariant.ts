@@ -1,4 +1,4 @@
-import { Result } from 'oxide.ts/dist';
+import { Result } from 'oxide.ts';
 
 export interface IBackendVariantDescriptor<T extends IBackendVariant = IBackendVariant> {
   getName(): string;

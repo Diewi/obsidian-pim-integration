@@ -1,5 +1,5 @@
 import { App } from 'obsidian/obsidian';
-import { Result, Ok, Err } from 'oxide.ts/dist';
+import { Result, Ok, Err } from 'oxide.ts';
 import { vCardTs2_1, vCardTs3_0, vCardTs4_0 } from 'typed-vcard';
 import { PimIntegrationContactImporterBase } from './ContactImporterBase';
 

@@ -5,7 +5,7 @@
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
-		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+		"build": "node ./node_modules/typescript7/bin/tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
 		"version": "node version-bump.mjs && git add manifest.json versions.json",
 		"test": "jest --watch",
 		"proto:generate": "node node_modules/protobufjs-cli/bin/pbjs -t static-module -w commonjs -o src_generated/native_bridge.js src_native/proto/native_bridge.proto && node node_modules/protobufjs-cli/bin/pbts -o src_generated/native_bridge.d.ts src_generated/native_bridge.js",
@@ -37,7 +37,8 @@
 		"ts-jest": "^29.4.15",
 		"tslib": "^2.9.1",
 		"typed-vcard": "file:../typed-vcard",
-		"typescript": "^5.9.3",
+		"typescript": "npm:@typescript/typescript6@^6.0.2",
+		"typescript7": "npm:typescript@^7.0.2",
 		"vcf": "^2.1.2",
 		"workerpool": "^10.0.3"
 	},
