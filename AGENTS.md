@@ -145,7 +145,7 @@ Line endings are normalized to LF by default (`LineEnding.Unix`). The engine thr
 | Install | `npm install` | Also links `typed-vcard` -> `../typed-vcard` (junction in node_modules). The plugin uses typed-vcard's compiled `dist/`: run `npm run build` in `../typed-vcard` after changing it |
 | Regenerate TS protobuf | `npm run proto:generate` | Needs `protobufjs-cli`; writes `src_generated/` (gitignored, so run after a fresh clone) |
 | Build C# bridge | `cd src_native/outlookcombridge && dotnet publish OutlookComBridge.csproj -c Release` | `dotnet build` only writes to `build/outlookcombridge/Release/`; only `publish` updates `dist_outlookcombridge/` (`PublishDir`), which `npm run build` copies into `dist/outlookcombridge/`. A clean first build can fail with missing `CliResponse`/`ExportResult` because protoc generates the file after sources are globbed; just run it again. Runs `protobuf_bin/bin/protoc.exe` first, which is gitignored: drop a protoc release into `protobuf_bin/` (see its `readme.txt`). README still says `src_outlookcombridge` and `dotnet publish`; the csproj is the truth |
-| Build plugin | `npm run build` | `tsc -noEmit -skipLibCheck` then esbuild to `dist/` (minified in prod, inline sourcemap in `npm run dev` watch mode). Copies manifest, licenses, docs, `dist_outlookcombridge/*` into `dist/outlookcombridge/`, deps/runtimeconfig json into `dist/outlookcombridge/templates/`, and `electron-edge-js` lib/tools |
+| Build plugin | `npm run build` | TypeScript 7 `tsc -noEmit -skipLibCheck` (called as `node ./node_modules/typescript7/bin/tsc`) then esbuild to `dist/`. `dist/` is never cleaned, so files from older builds linger (minified in prod, inline sourcemap in `npm run dev` watch mode). Copies manifest, licenses, docs, `dist_outlookcombridge/*` into `dist/outlookcombridge/`, deps/runtimeconfig json into `dist/outlookcombridge/templates/`, and `electron-edge-js` lib/tools |
 | Deploy | copy `dist/*` to `<vault>/.obsidian/plugins/obsidian-pim-integration/` | Manual; the "Build + deploy" VS Code task template has an empty command |
 | TS tests | `npx jest` | `npm test` is watch mode. ~1 min |
 | C# tests | `cd src_native/outlookcombridge && dotnet test OutlookComBridge.sln` | xUnit + Moq, no Outlook needed |
@@ -163,7 +163,10 @@ Test facts:
   `--test-data`. They skip themselves if the exe is missing.
 - `tests/SmokeTestMarkdownContactImport.test.ts` talks to a **real Outlook** via
   `dist/outlookcombridge/OutlookComBridge.exe` and writes to `tests/test-output/`. It times out
-  (15 s) when Outlook is slow or absent.
+  (15 s) when Outlook is slow or absent. The exe needs `OutlookComBridge.runtimeconfig.json` (and
+  `deps.json`) next to it; the plugin generates them at runtime, the build does not. After a
+  clean `dist/` copy both from `dist_outlookcombridge/`, otherwise the special-character smoke
+  tests fail with `hostpolicy.dll ... not found`.
 - `tests/edge/*` exercise electron-edge-js in a plain Node process and skip on CoreCLR init
   failure. `node tests/edge/test-edge-init.js` is the manual diagnostic from the README.
 - Diagnostic scripts, not tests: `npx ts-node tests/dumpTodayCalendar.ts` (dump today's raw
@@ -173,10 +176,10 @@ Test facts:
   `MockPimIntegrationContactImporterVCFMarkdown`) and capture `writeToFile` calls; they never
   need the Obsidian API. Keep new logic in the `*Base` classes so it stays testable this way.
 
-State as of 2026-11-20 on this machine: `tsc` clean; 15 suites, 278 passed, 6 skipped,
-2 failing:
+State as of 2026-11-20 on this machine (Outlook running): `tsc` clean; 15 suites, 279 passed,
+6 skipped, 1 failing (`SmokeTestMarkdownContactImport` additionally times out when Outlook is
+slow or absent):
 
-- `SmokeTestMarkdownContactImport` — timeout against real Outlook (environmental).
 - `BackendOutlookDepsJsonGenerator › should add EdgeJs entry to deps.json` — the test expects
   runtime key `EdgeJs.dll`, the generator now emits the Plugin-type relative path
   `bin/Release/EdgeJs.dll` (`addAssemblyEntry` uses `descriptor.filePath`). Test is stale
@@ -185,7 +188,8 @@ State as of 2026-11-20 on this machine: `tsc` clean; 15 suites, 278 passed, 6 sk
 ## Conventions
 
 - Prettier: 2 spaces, single quotes, semicolons, 100 columns, trailing commas es5. `.editorconfig`
-  matches for ts/js/cs. ESLint 9 is installed but `.eslintrc` is legacy format.
+  matches for ts/js/cs. ESLint 10 flat config in `eslint.config.mjs` (`npm run lint`); not part
+  of the build. The code base still has 77 errors / 7 warnings from before linting existed.
 - Return `Result<T, string>` from `oxide.ts` instead of throwing; use `match()` or
   `isErr()/unwrapErr()`. Promise-returning methods still resolve to a `Result`.
 - User feedback goes through `ObsidianUtils.logAndNotice()` (console + `Notice`). Classes use a
@@ -208,6 +212,32 @@ State as of 2026-11-20 on this machine: `tsc` clean; 15 suites, 278 passed, 6 sk
   (`npm run proto:generate` and `dotnet build`), updating `tests/__mocks__/native_bridge.js`'s
   fallback if new messages are used in tests, and keeping `TestData.cs` and
   `tests/fixtures/testCalendarData.ts` in sync (the TS tests assert against the C# fixtures).
+
+## Dependencies and toolchain
+
+- All dependencies were moved to their latest releases on 2026-11-20; every spec uses `^`.
+  Build tooling is listed under `dependencies` (historical); keep new entries in the section
+  of their neighbours.
+- **Two TypeScript versions** (same setup as typed-vcard): TypeScript 7 has no JS compiler API,
+  which ts-jest and typescript-eslint need. `typescript` is aliased to
+  `@typescript/typescript6` (the tools use it), `typescript7` is the real compiler and
+  `npm run build` calls `node ./node_modules/typescript7/bin/tsc` explicitly; a bare `tsc` may be
+  TS 6. Drop the alias once ts-jest and typescript-eslint support TS 7.
+- tsconfig: `moduleResolution: bundler` (TS 7 removed `node10` and `baseUrl`). It honours
+  package `exports`, so import packages from their root (e.g. `oxide.ts`, not `oxide.ts/dist`).
+  `types` is explicit (`node`, `jest`) because TS 6+ no longer loads `@types/*` automatically.
+- `overrides` pin `glob` / `minimatch` only below `@jest/reporters`, `jest-config`,
+  `jest-runtime` and `test-exclude` (vulnerable versions in jest 30's coverage tooling). Do not
+  make them global: license-checker's `read-package-json` needs glob's old callback API. Remove
+  them when jest updates; check with `npm audit`, `npx jest --coverage`, `npx license-checker`.
+- `npm ls` reports `invalid` glob/minimatch under `../typed-vcard/node_modules`: npm evaluates
+  the linked package's dev tree without typed-vcard's own overrides. Harmless for the plugin.
+- protobufjs 8 / protobufjs-cli 2.7: regenerate `src_generated/` (`npm run proto:generate`)
+  after pulling dependency changes. int64 fields stay `number|Long`.
+- electron-edge-js 45 ships native binaries for Electron 40-45. The Obsidian installed on the
+  author's machine (2026-11-20) runs Electron 39.8.3, which only electron-edge-js 39.x supports.
+  Irrelevant while edge mode is disabled; pick the electron-edge-js major that matches
+  Obsidian's Electron before enabling it.
 
 ## Known gaps and TODOs (from code comments and README)
 

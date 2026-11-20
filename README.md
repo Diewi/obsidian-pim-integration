@@ -298,7 +298,7 @@ for a typical developer setup on Windows.
 
 ### Prerequisites
 
-- Node.js (16+ or as specified in `package.json`)
+- Node.js 20.19+ or 22.13+ (required by ESLint 10; the author uses Node 22)
 - npm (or yarn/pnpm) installed and available on PATH
 - .NET SDK (required to build the Outlook COM Bridge) — recommended version: .NET 8
 - (Optional) VS Code with the included tasks for convenience
