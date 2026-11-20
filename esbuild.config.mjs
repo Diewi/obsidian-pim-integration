@@ -61,7 +61,9 @@ const context = await esbuild.context({
       resolveFrom: 'cwd',
       assets: {
         from: ['./manifest.json'],
-        to: ['./dist'],
+        // A file name is required: for a directory target, esbuild-plugin-copy derives the
+        // name by splitting the source path on its directory ('.'), which produced dist/manifest.
+        to: ['./dist/manifest.json'],
       },
       watch: true,
     }),
