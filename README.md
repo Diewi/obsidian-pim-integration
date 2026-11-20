@@ -54,7 +54,9 @@ command. The contacts are transformed into Markdown files at a specified locatio
  - Use `${name.familyName}, ${name.givenName}` to print the formatted full name.
  - Use array expressions like `${emails[].value}` to join values with commas or use the
    array-template form `${emails[].`- ${value}`}` to render each element on a separate line.
- - Provide defaults with `??`, e.g. `${tag??Unknown}` to fall back when a field is missing.
+ - Provide defaults with `??`, e.g. `${tag??Unknown}` to fall back when a field is missing. Array
+  templates accept a default for an empty list after the closing backtick:
+  `${telephones[].`- ${value}`??No phone}`.
  - For mailto/phone links you can build HTML in the template: `${emails[0].`<a href="mailto:${value}">Mail</a>`}`.
 
 ### Testing templates locally

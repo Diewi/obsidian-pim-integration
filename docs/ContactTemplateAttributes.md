@@ -136,7 +136,7 @@ developer-focused reference intended to make template authoring quick and predic
 **Notes**
 - The `typed-vcard` library provides slightly different shapes depending on vCard version (2.1, 3.0, 4.0). This reference uses the logical attribute names used by the plugin's template engine.
 - Arrays are common (emails, telephones, addresses, organization and title entries). Use `[]` or indexed forms to select or render elements.
-- Template engine features: array templates (``${arr[].`template`}``), single-element templates (``${arr[0]`...`}`` or ``${arr[0].`...`??Default}``), and defaults with `??`.
+- Template engine features: array templates (``${arr[].`template`}``, with an optional separator ``${arr[].`template`|, }`` and an optional default for an empty list ``${arr[].`template`??Default}``), single-element templates (``${arr[0]`...`}`` or ``${arr[0].`...`??Default}``), and defaults with `??`. Templates inside backticks cannot contain a backtick.
 
 ## Practical guidance
 

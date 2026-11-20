@@ -234,6 +234,39 @@ describe('Test template engine with special characters', () => {
     );
   });
 
+  test('array template with ??default renders the items when the list is not empty', () => {
+    const template = 'phone:\n${telephones[].` - ${value}`??No Phone}\norganization:\n${organization[].` - ${value}`}';
+    const data = {
+      telephones: [{ value: '+49 1' }, { value: '+49 2' }],
+      organization: [{ value: 'Annax GmbH' }],
+    };
+    const result = templateEngine.substitute(template, data).unwrap();
+    // Before the fix, the telephone template ran on to the organization template's closing
+    // backtick, leaving "`??No Phone}" in the output and swallowing the organization line.
+    expect(result).toBe('phone:\n - +49 1\n - +49 2\norganization:\n - Annax GmbH');
+  });
+
+  test('array template with ??default uses the default for a missing or empty list', () => {
+    const template = '${telephones[].` - ${value}`??No Phone} / ${emails[].`${value}`??No ${kind}}';
+    const data = { emails: [], kind: 'Mail' };
+    const result = templateEngine.substitute(template, data).unwrap();
+    expect(result).toBe('No Phone / No Mail');
+  });
+
+  test('array template with separator and ??default', () => {
+    const template = '${tags[].`#${name}`|, ??none} | ${empty[].`#${name}`|, ??none}';
+    const data = { tags: [{ name: 'a' }, { name: 'b' }], empty: [] };
+    const result = templateEngine.substitute(template, data).unwrap();
+    expect(result).toBe('#a, #b | none');
+  });
+
+  test('array template with an unsupported suffix does not swallow the next template', () => {
+    const template = '${a[].`${value}`!!x}\n${b[].`${value}`}';
+    const data = { a: [{ value: '1' }], b: [{ value: '2' }] };
+    const result = templateEngine.substitute(template, data).unwrap();
+    expect(result.split('\n')[1]).toBe('2');
+  });
+
   test('Test default value with special characters', () => {
     const template = 'Org: ${organization??Keine Angabe}\nNote: ${note??Keine Notiz verfügbar}';
     const data = {} as Record<string, unknown>;

@@ -72,28 +72,36 @@ export class TemplateEngine {
   ): string {
     // Use rootData for global context, default to data if not provided
     const globalData = rootData ?? data;
-    // Array template mapping with separator: array[].`template`|sep
-    const arrayTemplateRegex = /\$\{([a-zA-Z0-9_]+)\[\]\.\`([\s\S]+?)\`(?:\|([^}]+))?\}/g;
-    template = template.replace(arrayTemplateRegex, (_, arrKey, innerTemplate, sep) => {
+    // Array template mapping with optional separator and default:
+    // ${array[].`template`}, ${array[].`template`|sep}, ${array[].`template`??Default},
+    // ${array[].`template`|sep??Default}. The inner template must not contain a backtick;
+    // otherwise an unsupported suffix would let the match run on to the next template's closing
+    // backtick and swallow everything in between.
+    const arrayTemplateRegex =
+      /\$\{([a-zA-Z0-9_]+)\[\]\.`([^`]+)`(?:\|([^}?]+))?(?:\?\?([^}]+))?\}/g;
+    template = template.replace(arrayTemplateRegex, (_, arrKey, innerTemplate, sep, defaultValue) => {
       const arr = data[arrKey];
       const separator = sep !== undefined ? sep.replace(/\\n/g, '\n') : '\n';
-      if (Array.isArray(arr)) {
-        return arr
-          .filter(
-            (v) => v !== undefined && v !== null && !(typeof v === 'string' && v.trim() === '')
-          )
-          .map((item) => this.substituteInner(innerTemplate, item, lineEnding, globalData))
-          .filter((str) => typeof str === 'string' && str.trim() !== '')
-          .join(separator);
+      const rendered = Array.isArray(arr)
+        ? arr
+            .filter(
+              (v) => v !== undefined && v !== null && !(typeof v === 'string' && v.trim() === '')
+            )
+            .map((item) => this.substituteInner(innerTemplate, item, lineEnding, globalData))
+            .filter((str) => typeof str === 'string' && str.trim() !== '')
+            .join(separator)
+        : '';
+      if (rendered === '' && defaultValue !== undefined) {
+        return this.substituteInner(defaultValue, globalData, lineEnding, globalData);
       }
-      return '';
+      return rendered;
     });
 
     // Single element array template mapping: array[index]`template`
     // Allow optional dot before the backtick and optional default after the template:
     // e.g. ${arr[0]`...`} ${arr[0].`...`} and ${arr[0].`...`??Default}
     const singleArrayTemplateRegex =
-      /\$\{([a-zA-Z0-9_]+)\[(\d+)\](?:\.)?\`([\s\S]+?)\`(?:\?\?([^}]+))?\}/g;
+      /\$\{([a-zA-Z0-9_]+)\[(\d+)\](?:\.)?`([^`]+)`(?:\?\?([^}]+))?\}/g;
     template = template.replace(
       singleArrayTemplateRegex,
       (_, arrKey, idx, innerTemplate, defaultValue) => {

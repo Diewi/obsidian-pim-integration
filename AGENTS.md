@@ -127,9 +127,14 @@ Key facts:
 
 Processed in this order, each via regex replace:
 
-1. `${arr[].`inner template`|sep}` — render `inner` per element, join with `sep`
-   (default newline, `\n` literal allowed). Empty renders are dropped.
+1. `${arr[].`inner template`|sep??default}` — render `inner` per element, join with `sep`
+   (default newline, `\n` literal allowed). Empty renders are dropped. `|sep` and `??default`
+   are optional; the default is used when nothing is rendered (missing or empty list).
 2. `${arr[0].`inner`??default}` — single element; dot before the backtick is optional.
+
+Inner templates in forms 1 and 2 cannot contain a backtick (so they cannot nest). The inner
+pattern is `[^`]+` on purpose: a lazy `[\s\S]+?` let an unsupported suffix run on to the next
+template's closing backtick and silently swallow the text in between.
 3. `${path??default}` — dotted path, `arr[0].x`, `arr[].x` (CSV, or `arr[].x|sep`), and
    `${dateProp|yyyy-MM-dd}` which formats a `Date` with `date-fns` `format` in **local time**.
    `null` counts as empty. A `default` is itself a template, substituted against the root
