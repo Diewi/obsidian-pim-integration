@@ -13,6 +13,69 @@ const __dirname = path.dirname(__filename);
 const banner = fs.readFileSync(path.join(__dirname, 'src', 'banner.js'), 'utf8');
 
 const prod = process.argv[2] === 'production';
+// `--edge` builds the in-process edge mode (electron-edge-js) instead of the default CLI mode
+// (OutlookComBridge.exe). Edge mode does not work in the Obsidian renderer yet; see
+// OutlookNativeExecutorFactory.detectBestMode().
+const edge = process.argv.includes('--edge');
+
+// The part of electron-edge-js that edge mode needs: Windows x64, CoreCLR, precompiled DLL
+// (assemblyFile). Not needed: other platforms, edge_nativeclr (.NET Framework), bootstrap refs/
+// (only for compiling C# source), *.pdb, bootstrap obj/ and csproj, install-time tools.
+const EDGE_SRC = path.join(__dirname, 'node_modules', 'electron-edge-js');
+const EDGE_DEST = path.join(__dirname, 'dist', 'outlookcombridge', 'electron-edge-js');
+const EDGE_FILES = [
+  'lib/edge.js',
+  'lib/electronPath.js',
+  'tools/checkMono.js', // required unconditionally by lib/edge.js
+  'lib/bootstrap/bin/Release/EdgeJs.dll',
+  'lib/bootstrap/bin/Release/bootstrap.dll', // edge.js sets EDGE_BOOTSTRAP_DIR only if it exists
+  'lib/bootstrap/bin/Release/bootstrap.deps.json', // read by EdgeJsVersionReader
+];
+// Per Electron major: lib/native/win32/x64/<major>/. edge.js picks the folder from
+// process.versions.electron, so every major the installed electron-edge-js ships is copied.
+const EDGE_NATIVE_DIR = 'lib/native/win32/x64';
+const EDGE_NATIVE_FILES = [
+  'edge_coreclr.node',
+  // VC++ runtime, loaded from the folder of the .node module
+  'msvcp140.dll',
+  'vcruntime140.dll',
+  'concrt140.dll',
+  'vccorlib140.dll',
+];
+
+/**
+ * Replace dist/outlookcombridge/electron-edge-js with the files edge mode needs, or remove it for
+ * a CLI build (dist/ is never cleaned, so an older full copy would otherwise stay).
+ */
+function syncElectronEdge() {
+  fs.rmSync(EDGE_DEST, { recursive: true, force: true });
+  if (!edge) {
+    return;
+  }
+  const copyFile = (relPath) => {
+    const from = path.join(EDGE_SRC, relPath);
+    if (!fs.existsSync(from)) {
+      throw new Error(`electron-edge-js file not found: ${from}`);
+    }
+    const to = path.join(EDGE_DEST, relPath);
+    fs.mkdirSync(path.dirname(to), { recursive: true });
+    fs.copyFileSync(from, to);
+  };
+  EDGE_FILES.forEach(copyFile);
+  const majors = fs
+    .readdirSync(path.join(EDGE_SRC, EDGE_NATIVE_DIR), { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name);
+  if (majors.length === 0) {
+    throw new Error(`No Electron versions found in ${path.join(EDGE_SRC, EDGE_NATIVE_DIR)}`);
+  }
+  for (const major of majors) {
+    EDGE_NATIVE_FILES.forEach((file) => copyFile(`${EDGE_NATIVE_DIR}/${major}/${file}`));
+  }
+  console.log(`Copied electron-edge-js for Electron ${majors.join(', ')} (win32 x64)`);
+}
+
+syncElectronEdge();
 
 const context = await esbuild.context({
   banner: {
@@ -20,6 +83,9 @@ const context = await esbuild.context({
   },
   entryPoints: {
     main: 'src/main.ts',
+  },
+  define: {
+    __PIM_EDGE_MODE__: JSON.stringify(edge),
   },
   bundle: true,
   external: [
@@ -89,22 +155,6 @@ const context = await esbuild.context({
           './dist_outlookcombridge/OutlookComBridge.runtimeconfig.json',
         ],
         to: ['./dist/outlookcombridge/templates/'],
-      },
-      watch: true,
-    }),
-    copy({
-      resolveFrom: 'cwd',
-      assets: {
-        from: ['./node_modules/electron-edge-js/lib/**/*'],
-        to: ['./dist/outlookcombridge/electron-edge-js/lib/'],
-      },
-      watch: true,
-    }),
-    copy({
-      resolveFrom: 'cwd',
-      assets: {
-        from: ['./node_modules/electron-edge-js/tools/**/*'],
-        to: ['./dist/outlookcombridge/electron-edge-js/tools/'],
       },
       watch: true,
     }),

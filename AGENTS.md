@@ -70,9 +70,14 @@ Key facts:
   `outlookcombridge/` folder from the `templates/` copies. It is skipped on plugin load and only
   runs when the user changes the variant in settings. This machinery exists for edge mode and
   is not needed by the CLI path.
-- **CLI vs edge.** `NativeExecutionMode` is `'cli' | 'edge'`. `OutlookNativeExecutorFactory
-  .detectBestMode()` hard-codes `'cli'` because electron-edge-js needs native threads that the
-  Obsidian renderer does not provide. Edge code (`NativeExecutorEdge`,
+- **CLI vs edge.** `NativeExecutionMode` is `'cli' | 'edge'`. The mode is fixed at build time:
+  `OutlookNativeExecutorFactory.detectBestMode()` returns `'cli'` unless the plugin was built
+  with `npm run build:edge` (esbuild `--edge` defines `__PIM_EDGE_MODE__`; undefined in jest, so
+  tests see `'cli'`). `BackendTypeOutlook` takes the mode (constructor default:
+  `detectBestMode()`) and passes it to the importers. Only in edge mode does
+  `onSelectBackendType` read `EdgeJs.dll` from `outlookcombridge/electron-edge-js` and add it to
+  the generated deps.json; the CLI bridge never loads it. Edge mode is for experiments only:
+  electron-edge-js needs native threads that the Obsidian renderer does not provide. Edge code (`NativeExecutorEdge`,
   `BackendOutlookNativeExecutorEdge`, `EdgeOutlookNativeExecutor` which is an unused duplicate,
   `banner.js`, `EdgeJsVersionReader`, `BackendOutlookDepsJsonGenerator`) is kept alive for a
   future switch; calendar export is not implemented on the edge path. The sibling checkouts
@@ -150,7 +155,8 @@ Line endings are normalized to LF by default (`LineEnding.Unix`). The engine thr
 | Install | `npm install` | Also links `typed-vcard` -> `../typed-vcard` (junction in node_modules). The plugin uses typed-vcard's compiled `dist/`: run `npm run build` in `../typed-vcard` after changing it |
 | Regenerate TS protobuf | `npm run proto:generate` | Needs `protobufjs-cli`; writes `src_generated/` (gitignored, so run after a fresh clone) |
 | Build C# bridge | `cd src_native/outlookcombridge && dotnet publish OutlookComBridge.csproj -c Release` | `dotnet build` only writes to `build/outlookcombridge/Release/`; only `publish` updates `dist_outlookcombridge/` (`PublishDir`), which `npm run build` copies into `dist/outlookcombridge/`. A clean first build can fail with missing `CliResponse`/`ExportResult` because protoc generates the file after sources are globbed; just run it again. Runs `protobuf_bin/bin/protoc.exe` first, which is gitignored: drop a protoc release into `protobuf_bin/` (see its `readme.txt`). README still says `src_outlookcombridge` and `dotnet publish`; the csproj is the truth |
-| Build plugin | `npm run build` | TypeScript 7 `tsc -noEmit -skipLibCheck` (called as `node ./node_modules/typescript7/bin/tsc`) then esbuild to `dist/`. `dist/` is never cleaned, so files from older builds linger (minified in prod, inline sourcemap in `npm run dev` watch mode). Copies manifest, licenses, docs, `dist_outlookcombridge/*` into `dist/outlookcombridge/`, deps/runtimeconfig json into `dist/outlookcombridge/templates/`, and `electron-edge-js` lib/tools |
+| Build plugin | `npm run build` | TypeScript 7 `tsc -noEmit -skipLibCheck` (called as `node ./node_modules/typescript7/bin/tsc`) then esbuild to `dist/`. `dist/` is never cleaned, so files from older builds linger (minified in prod, inline sourcemap in `npm run dev` watch mode). Copies manifest, licenses, docs, `dist_outlookcombridge/*` into `dist/outlookcombridge/`, deps/runtimeconfig json into `dist/outlookcombridge/templates/`. Removes `dist/outlookcombridge/electron-edge-js` (CLI builds do not ship it) |
+| Build plugin (edge mode) | `npm run build:edge` | Same, but compiles `detectBestMode()` to `'edge'` and copies only the electron-edge-js files edge mode needs (`EDGE_FILES` / `EDGE_NATIVE_FILES` in `esbuild.config.mjs`: loader, `EdgeJs.dll`, bootstrap, and `win32/x64/<major>/edge_coreclr.node` + VC++ runtime for every Electron major the package ships; ~10 MB instead of 41 MB). The subset is derived from `lib/edge.js`; it has not been loaded in a real Electron yet |
 | Deploy | copy `dist/*` to `<vault>/.obsidian/plugins/obsidian-pim-integration/` | Manual; the "Build + deploy" VS Code task template has an empty command |
 | TS tests | `npx jest` | `npm test` is watch mode. ~1 min |
 | C# tests | `cd src_native/outlookcombridge && dotnet test OutlookComBridge.sln` | xUnit + Moq, no Outlook needed |
@@ -172,8 +178,9 @@ Test facts:
   `deps.json`) next to it; the plugin generates them at runtime, the build does not. After a
   clean `dist/` copy both from `dist_outlookcombridge/`, otherwise the special-character smoke
   tests fail with `hostpolicy.dll ... not found`.
-- `tests/edge/*` exercise electron-edge-js in a plain Node process and skip on CoreCLR init
-  failure. `node tests/edge/test-edge-init.js` is the manual diagnostic from the README.
+- `tests/edge/*` exercise `edge-js` from `node_modules` (not the electron-edge-js copy in
+  `dist/`) in a plain Node process and skip on CoreCLR init failure, and the `dist/` based ones
+  skip unless `dist/` is an edge build (`npm run build:edge`). `node tests/edge/test-edge-init.js` is the manual diagnostic from the README.
 - Diagnostic scripts, not tests: `npx ts-node tests/dumpTodayCalendar.ts` (dump today's raw
   iCal + parsed JSON), `npx ts-node tests/generateCalendarSamples.ts` (render the sample
   calendar template to `tests/test-output/calendar/`).
@@ -181,8 +188,8 @@ Test facts:
   `MockPimIntegrationContactImporterVCFMarkdown`) and capture `writeToFile` calls; they never
   need the Obsidian API. Keep new logic in the `*Base` classes so it stays testable this way.
 
-State as of 2026-11-20 on this machine (Outlook running): `tsc` clean; 15 suites, 279 passed,
-6 skipped, 1 failing (`SmokeTestMarkdownContactImport` additionally times out when Outlook is
+State as of 2026-11-20 on this machine (Outlook running, CLI build in `dist/`): `tsc` clean;
+16 suites, 287 passed, 6 skipped, 1 failing (`SmokeTestMarkdownContactImport` additionally times out when Outlook is
 slow or absent):
 
 - `BackendOutlookDepsJsonGenerator › should add EdgeJs entry to deps.json` — the test expects
@@ -241,8 +248,8 @@ slow or absent):
   after pulling dependency changes. int64 fields stay `number|Long`.
 - electron-edge-js 45 ships native binaries for Electron 40-45. The Obsidian installed on the
   author's machine (2026-11-20) runs Electron 39.8.3, which only electron-edge-js 39.x supports.
-  Irrelevant while edge mode is disabled; pick the electron-edge-js major that matches
-  Obsidian's Electron before enabling it.
+  Irrelevant for CLI builds (they do not ship electron-edge-js); for an edge build pick the
+  electron-edge-js major that matches Obsidian's Electron.
 
 ## Known gaps and TODOs (from code comments and README)
 

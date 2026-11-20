@@ -17,6 +17,10 @@ import * as fs from 'fs';
 describe('NativeExecutorEdge Integration Tests', () => {
   const distOutlookComBridge = path.resolve(__dirname, '../../dist/outlookcombridge');
   const testScript = path.join(__dirname, 'test-native-executor-edge.js');
+  // Only `npm run build:edge` copies electron-edge-js; the test script exits early without it.
+  const isEdgeBuild = () =>
+    fs.existsSync(path.join(distOutlookComBridge, 'OutlookComBridge.dll')) &&
+    fs.existsSync(path.join(distOutlookComBridge, 'electron-edge-js'));
 
   beforeAll(() => {
     // Check prerequisites
@@ -29,9 +33,8 @@ describe('NativeExecutorEdge Integration Tests', () => {
   });
 
   it('should load edge-js and create function bindings', () => {
-    const dllPath = path.join(distOutlookComBridge, 'OutlookComBridge.dll');
-    if (!fs.existsSync(dllPath)) {
-      console.log('Skipping: OutlookComBridge.dll not found');
+    if (!isEdgeBuild()) {
+      console.log('Skipping: dist/outlookcombridge is not an edge build (npm run build:edge)');
       return;
     }
 
@@ -64,9 +67,8 @@ describe('NativeExecutorEdge Integration Tests', () => {
   }, 60000);
 
   it('should handle ping functionality (edge module loaded)', () => {
-    const dllPath = path.join(distOutlookComBridge, 'OutlookComBridge.dll');
-    if (!fs.existsSync(dllPath)) {
-      console.log('Skipping: OutlookComBridge.dll not found');
+    if (!isEdgeBuild()) {
+      console.log('Skipping: dist/outlookcombridge is not an edge build (npm run build:edge)');
       return;
     }
 
@@ -90,9 +92,8 @@ describe('NativeExecutorEdge Integration Tests', () => {
   }, 60000);
 
   it('should create edge function for OutlookComBridge', () => {
-    const dllPath = path.join(distOutlookComBridge, 'OutlookComBridge.dll');
-    if (!fs.existsSync(dllPath)) {
-      console.log('Skipping: OutlookComBridge.dll not found');
+    if (!isEdgeBuild()) {
+      console.log('Skipping: dist/outlookcombridge is not an edge build (npm run build:edge)');
       return;
     }
 
@@ -116,9 +117,8 @@ describe('NativeExecutorEdge Integration Tests', () => {
   }, 60000);
 
   it('should pass all tests', () => {
-    const dllPath = path.join(distOutlookComBridge, 'OutlookComBridge.dll');
-    if (!fs.existsSync(dllPath)) {
-      console.log('Skipping: OutlookComBridge.dll not found');
+    if (!isEdgeBuild()) {
+      console.log('Skipping: dist/outlookcombridge is not an edge build (npm run build:edge)');
       return;
     }
 

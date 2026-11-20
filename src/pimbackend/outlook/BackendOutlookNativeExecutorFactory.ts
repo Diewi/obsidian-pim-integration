@@ -3,6 +3,13 @@ import { BackendOutlookNativeExecutorCli } from './BackendOutlookNativeExecutorC
 import { BackendOutlookNativeExecutorEdge } from './BackendOutlookNativeExecutorEdge';
 
 /**
+ * Set by esbuild (`define`) to true when the plugin is built with `--edge`, which also copies the
+ * electron-edge-js files the edge mode needs into dist/outlookcombridge. Undefined in tests and
+ * in builds without `--edge`.
+ */
+declare const __PIM_EDGE_MODE__: boolean | undefined;
+
+/**
  * Factory for creating Outlook native executors.
  *
  * Use this to switch between CLI and edge-based execution with a simple flag.
@@ -34,13 +41,13 @@ export class OutlookNativeExecutorFactory {
   }
 
   /**
-   * Determine the best available mode for the current environment.
-   * Currently always returns 'cli' since Obsidian doesn't support native threads.
-   * Will return 'edge' once native thread support is available.
+   * Determine the execution mode for this build.
+   * Returns 'cli' unless the plugin was built with `--edge` (see esbuild.config.mjs). Only the
+   * edge build ships electron-edge-js, and edge mode does not work in the Obsidian renderer yet
+   * (no native threads), so the edge build is for experiments only.
    */
   static detectBestMode(): OutlookBackendMode {
     // TODO: Detect if native threads are available
-    // For now, always use CLI since edge-js doesn't work in Obsidian renderer
-    return 'cli';
+    return typeof __PIM_EDGE_MODE__ !== 'undefined' && __PIM_EDGE_MODE__ ? 'edge' : 'cli';
   }
 }

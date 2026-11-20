@@ -13,6 +13,9 @@ import { ICalendarImporterBackend } from '../../calendar/ICalendarImporterBacken
 import { CalendarImporterBackendOutlook } from './CalendarImporterBackendOutlook';
 import { BackendOutlookDepsJsonGenerator } from './BackendOutlookDepsJsonGenerator';
 import { EdgeJsVersionReader } from '../NativeExecutorEdgeJsVersionReader';
+import { OutlookNativeExecutorFactory } from './BackendOutlookNativeExecutorFactory';
+import { OutlookBackendMode } from './IBackendOutlookNativeExecutor';
+import { AssemblyDescriptor } from './IBackendParametersOutlook';
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -40,14 +43,17 @@ export class BackendTypeOutlook
 
   private readonly pluginDir: string;
   private readonly outlookcombridgeDir: string;
+  /** 'cli' (OutlookComBridge.exe) unless the plugin was built with `--edge`. */
+  private readonly mode: OutlookBackendMode;
   private dotnetPath: string = DEFAULT_DOTNET_PATH_INTERNAL;
   private outlookCalendarFolder: string = '';
   private includePrivateCalendarEvents: boolean = false;
 
   private selectedVariant: IBackendVariantOutlookParameters | null = null;
 
-  constructor(pluginDir: string) {
+  constructor(pluginDir: string, mode: OutlookBackendMode = OutlookNativeExecutorFactory.detectBestMode()) {
     this.pluginDir = pluginDir;
+    this.mode = mode;
     this.outlookcombridgeDir = pluginDir + path.sep + BackendTypeOutlook.OUTLOOK_COM_BRIDGE_DIR;
   }
 
@@ -105,7 +111,7 @@ export class BackendTypeOutlook
       return Ok(
         new CalendarImporterBackendOutlook(
           this.outlookcombridgeDir,
-          'cli',
+          this.mode,
           false,
           this.dotnetPath,
           this.outlookCalendarFolder,
@@ -124,12 +130,11 @@ export class BackendTypeOutlook
           'No backend variant selected. Please select a variant before creating an importer.'
         );
       }
-      // Use CLI mode by default for reliability
       return Ok(
         new ContactImporterBackendOutlook(
           this.pluginDir,
           this.outlookcombridgeDir,
-          'cli',
+          this.mode,
           false, // useJsonForCli
           this.dotnetPath
         )
@@ -152,31 +157,20 @@ export class BackendTypeOutlook
         return;
       }
 
-      // Read EdgeJs descriptor from electron-edge-js package
-      const edgeJsDir = fs.existsSync(this.outlookcombridgeDir + path.sep + 'electron-edge-js')
-        ? 'electron-edge-js'
-        : 'edge-js';
-      if (!fs.existsSync(this.outlookcombridgeDir + path.sep + edgeJsDir)) {
-        reject(
-          Err(
-            `Neither 'electron-edge-js' nor 'edge-js' directory found in ${this.outlookcombridgeDir}.`
-          )
-        );
-        return;
-      }
-      const electronEdgePath = this.outlookcombridgeDir + path.sep + edgeJsDir;
-      const edgeJsDescriptorResult = EdgeJsVersionReader.readEdgeJsDescriptor(electronEdgePath);
-      if (edgeJsDescriptorResult.isErr()) {
-        reject(Err(edgeJsDescriptorResult.unwrapErr()));
-        return;
-      }
-
-      // Collect all assembly descriptors
-      const assemblyDescriptors = [
-        edgeJsDescriptorResult.unwrap(),
+      // Collect all assembly descriptors. EdgeJs.dll is only loaded in edge mode; the CLI
+      // bridge never uses it, and CLI builds do not ship electron-edge-js.
+      const assemblyDescriptors: AssemblyDescriptor[] = [
         variant.getOfficeDllDescriptor(),
         variant.getOfficeInteropDllDescriptor(),
       ];
+      if (this.mode === 'edge') {
+        const edgeJsDescriptorResult = this.readEdgeJsDescriptor();
+        if (edgeJsDescriptorResult.isErr()) {
+          reject(Err(edgeJsDescriptorResult.unwrapErr()));
+          return;
+        }
+        assemblyDescriptors.unshift(edgeJsDescriptorResult.unwrap());
+      }
 
       // Create the generator with all assembly descriptors
       const binPath = this.pluginDir + path.sep + BackendTypeOutlook.OUTLOOK_COM_BRIDGE_DIR;
@@ -201,6 +195,20 @@ export class BackendTypeOutlook
       resolve(Ok(undefined));
     });
     return Promise.resolve(promise);
+  }
+
+  /** Read the EdgeJs.dll descriptor from the electron-edge-js (or edge-js) files of an edge build. */
+  private readEdgeJsDescriptor(): Result<AssemblyDescriptor, string> {
+    const edgeJsDir = ['electron-edge-js', 'edge-js']
+      .map((dir) => this.outlookcombridgeDir + path.sep + dir)
+      .find((dir) => fs.existsSync(dir));
+    if (edgeJsDir === undefined) {
+      return Err(
+        `Neither 'electron-edge-js' nor 'edge-js' directory found in ${this.outlookcombridgeDir}. ` +
+          'Edge mode needs a plugin build made with --edge.'
+      );
+    }
+    return EdgeJsVersionReader.readEdgeJsDescriptor(edgeJsDir);
   }
 
   selectBackendVariant(
